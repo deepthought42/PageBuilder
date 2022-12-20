@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.pageBuilder.services.AuditRecordService;
@@ -75,14 +77,32 @@ public class AuditController {
 	public ResponseEntity receiveMessage(@RequestBody Body body) 
 			throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException 
 	{
-		UrlMessage url_msg = (UrlMessage)body.getMessage();	    
-	    log.warn("data :: "+url_msg);
+		System.out.println("Body content :: "+body);
+		Body.Message message = body.getMessage();
+		System.out.println("Message content :: "+message);
+		String data = message.getData();
+		System.out.println("data :: "+data);
+	    String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
+	    System.out.println("Target data :: "+target);
+	    ObjectMapper input_mapper = new ObjectMapper();
+        UrlMessage url_msg = input_mapper.readValue(target, UrlMessage.class);
+        
+	    //UrlMessage url_msg =  null;//(UrlMessage)body.getMessage().getData();	    
+	    System.out.println("data 2 : "+target);
+	    //convert target to URL message
+	    
 	    
 	    AuditRecord audit_record = new PageAuditRecord(ExecutionStatus.BUILDING_PAGE, new HashSet<>(), true);
 		
 		audit_record = audit_record_service.save(audit_record);
 		audit_record_service.addPageAuditToDomainAudit(url_msg.getDomainAuditRecordId(), 
 														audit_record.getId());
+		
+		System.out.println("message acct id :: "+url_msg.getAccountId());
+		System.out.println("message domain audit id :: "+url_msg.getDomainAuditRecordId());
+		System.out.println("message domain id :: "+url_msg.getDomainId());
+		System.out.println("message page audit id :: "+url_msg.getPageAuditId());
+		System.out.println("message url :: "+url_msg.getUrl());
 		URL url = new URL(url_msg.getUrl());
 		
 	    JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();

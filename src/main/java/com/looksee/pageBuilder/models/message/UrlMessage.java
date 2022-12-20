@@ -6,9 +6,12 @@ package com.looksee.pageBuilder.models.message;
  * 
  */
 public class UrlMessage extends Message {
-	private long page_audit_record_id;
+	
+	private long pageAuditId;
 	private String url;
-		
+	
+	public UrlMessage() {}
+	
 	public UrlMessage( long domain_id, 
 				  	   long account_id,
 				  	   long domain_audit_id,
@@ -20,12 +23,12 @@ public class UrlMessage extends Message {
 		setPageAuditId(page_audit_id);
 	}
 
-	public long getPageAuditID() {
-		return page_audit_record_id;
+	public long getPageAuditId() {
+		return pageAuditId;
 	}
 
 	public void setPageAuditId(long page_audit_record_id) {
-		this.page_audit_record_id = page_audit_record_id;
+		this.pageAuditId = page_audit_record_id;
 	}
 
 	public String getUrl() {
@@ -34,5 +37,5 @@ public class UrlMessage extends Message {
 
 	public void setUrl(String url) {
 		this.url = url;
-	}	
+	}
 }

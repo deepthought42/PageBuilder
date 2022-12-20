@@ -285,6 +285,13 @@
 	     	</exclusions>
 		</dependency>
 		
+		<!-- https://mvnrepository.com/artifact/com.getsentry.raven/raven-logback -->
+		<dependency>
+		    <groupId>com.getsentry.raven</groupId>
+		    <artifactId>raven-logback</artifactId>
+		    <version>8.0.3</version>
+		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/io.whelk.flesch.kincaid/whelk-flesch-kincaid -->
 		<dependency>
 		    <groupId>io.whelk.flesch.kincaid</groupId>
