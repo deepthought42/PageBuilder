@@ -8,7 +8,9 @@ public class PageAuditMessage extends Message {
 	private long page_audit_id;
 	private long page_id;
 	
-	public PageAuditMessage() {}
+	public PageAuditMessage() {
+		super(-1, -1, -1);
+	}
 	
 	public PageAuditMessage(long account_id,
 							long domain_audit_id,

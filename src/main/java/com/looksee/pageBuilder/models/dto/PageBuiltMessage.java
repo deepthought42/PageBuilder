@@ -6,7 +6,9 @@ public class PageBuiltMessage extends Message{
 	private long page_id;
 	private long page_audit_id;
 	
-	public PageBuiltMessage() {}
+	public PageBuiltMessage() {
+		super(-1, -1, -1);
+	}
 	
 	public PageBuiltMessage(long account_id, 
 							long domain_audit_id,

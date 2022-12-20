@@ -14,6 +14,9 @@ public class VerifiedJourneyMessage extends Message {
 	private PathStatus status;
 	private BrowserType browser;
 	
+	public VerifiedJourneyMessage() {
+		super(-1, -1, -1);
+	}
 	public VerifiedJourneyMessage( Journey journey, 
 								   PathStatus status, 
 								   BrowserType browser,
@@ -21,6 +24,7 @@ public class VerifiedJourneyMessage extends Message {
 								   long account_id, 
 								   long audit_record_id)
 	{
+		super(account_id, audit_record_id, domain_id);
 		setJourney(journey);
 		setStatus(status);
 		setBrowser(browser);

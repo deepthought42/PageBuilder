@@ -60,7 +60,11 @@ docker build --no-cache -t gcr.io/cosmic-envoy-280619/look-see-api:v#.#.# .
 
 docker push gcr.io/cosmic-envoy-280619/look-see-api:v#.#.#
 
+gcloud auth print-access-token | sudo docker login   -u oauth2accesstoken   --password-stdin https://us-central1-docker.pkg.dev
 
+sudo docker build --no-cache -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/page-builder .
+
+sudo docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/page-builder 
 
 # Security
 
