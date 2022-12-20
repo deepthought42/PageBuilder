@@ -1,0 +1,20 @@
+# spring
+spring:
+  # profiles
+  profiles:
+    active: local
+# framework
+framework:
+  # swagger
+  swagger:
+    base-package: com.looksee.audit-service.web.controller
+# log
+logging:
+  config: classpath:config/logback-spring.xml
+  level:
+    root: warn
+    com.looksee.audit-service: info
+# mybatis plus
+mybatis-plus:
+  type-aliases-package: com.looksee.audit-service.entity,com.looksee.audit-service.model.*
+  mapper-locations: classpath:mappers/*Mapper.xml

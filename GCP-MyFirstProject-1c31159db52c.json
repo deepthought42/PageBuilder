@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "cosmic-envoy-280619",
+  "private_key_id": "1c31159db52c5ae0d9405ba928f865571a7b41aa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDOFnw/Qs0kNv/z\n4Xhm1/dAI/9go09akqOxeo4j708XQkzVpZBtZonJOLsPs994AFNoJ1Pe2ms53tVz\nYvU5EDgAQDaZU9/yCZCr1uPFv7W4cVdmDb3SzLcKSacYU14ODYPiK0YdBmO/Aez0\n1YNWxk505szCzNAFR4GARA/k1v/+bUNRL9eMAMLe3/0c082v47afXNpWRBgxkJ7x\nIVo4EQ/ni8c4OHRr902/n7y2LoOD6URk4gDJphQJLlHacjOV2wiu4FK5+JtiMwPj\nFuAucHbV3PIrmnvm61uV4h90H5Je3T7bdsSfp6zeNnK8b8xr74o82S9qdkmev26L\nYkEp3oL/AgMBAAECggEACE6aLOBBULRvBh+NkO0jjJMvnR4Zi0HyYR/mTdtT6Dmx\n4oeo5I9KrPyESQ4Rv4LfH6CwvgCrDvycUHT1YOCZQgGxtKAJ1tMrmwVA8Q4kh7mz\nq6u/IOsVGHMEwpCThwc2Kb+lQIqH/B6gQDmpwgq4kbJh8WDCAaO+di1ZnWM1ZN01\ndoa08uf5a5HBYnzaYm76Och8yMm6qZgcVRCOUxUzPg0Lz9xVDi6b22Io90sl3KhM\nNnVMoxZDDGGzfcEXaNzFnFXnCfgmnNtm/vprz7IhtUIpLl9xMsOWdCo0hbFMpOz0\nYFhDGqdEIJPQUziDhmMCLmb2j8AL1wal66xvNAa8kQKBgQDt4FfdJ/JEa+ytia/A\n744nldvTd2bE+sqJ3+tg9bnli3INX2082rKoJJ+pHfUqHrI9QII0116x/bAvNv7t\nulHz6ou5dCNMpOL9WzkTSxoG0UiSRyw3IZAhsi/fnaof5RY/2mGkJlJOk1XIuiU6\nk9cAyoA1EabotjVOIOrIGFRoEQKBgQDdyh+c9Mqs2bnw/bZOHCeYgSNk3LoTzylX\nPibXIBKDqZyzmLTAWOVWqnbbMt1oeqEddF7cxn2aZEsiZ6nMbpSCk0NO89AmeTYW\nBoq9YngDJMUn7dmFb9+ZUt6bNJY/q3JAbYAUG9fT5GqWOACyl04jVhtf2JzHikRS\npQtCvN/KDwKBgQDaNutjXbnJOpgruhsYiqmFdtvp6abFHKugP2HV2JVoFbvSuK+l\nG5q41KACrBCzSuWHex33C3s7HNX6+iByRHHZqFf1EK0xKjFw6bY6FLMTffls9w2A\npbFqt+Ni52ehSq5WdScNRnpKyq3vLZPpYKXje+CQzlinMj9EJL48QNVtgQKBgCnA\nL91LE5AgWGluSVBA6o9B2BjXmEu8Vqrurz8V8YZJeo8wcu42jc2Xv1IaLCXL1+KE\nkor67pAOyzoJy6QJOPmvoR8OtKNZc/4HczydebwVwut2UdlVqwDg4bjT2GjZ7GMG\nefLPHvzrZckrd64m33W1cufDDhheBeiM2ybQCUyvAoGBAMfsqZMsWaQ6j4XFQhHs\negiLutW2jTynAQ/2oEJBLDTd+MmRerSkTY+jVgQ7nto+iR+dteDGzQJTAppTekhm\nQu9UUfaBbhpNDkCqqZoFH4lYhGOkRo6/qlMgFrsslB4XuJt8Gxk5ZgQwPnU0piUF\n+YW0Tu+WJZ6OOhNNiKEZiBVw\n-----END PRIVATE KEY-----\n",
+  "client_email": "look-see-api@cosmic-envoy-280619.iam.gserviceaccount.com",
+  "client_id": "116222003549247893147",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/look-see-api%40cosmic-envoy-280619.iam.gserviceaccount.com"
+}
