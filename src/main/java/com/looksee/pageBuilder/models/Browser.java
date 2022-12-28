@@ -470,6 +470,11 @@ public class Browser {
 				}
 			}while(!doWindowsMatch && (original_screenshot_row >= (int)(original_image.getHeight() - current_screenshot.getHeight()) && current_screenshot_row >= 0));
 		}
+		
+		for(BufferedImage current_screenshot : screenshots) {
+			current_screenshot.flush();
+		}
+		screenshots.clear();
 		return original_image;
 	}
 

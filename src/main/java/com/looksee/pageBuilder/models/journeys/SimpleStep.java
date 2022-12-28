@@ -1,10 +1,12 @@
 package com.looksee.pageBuilder.models.journeys;
 
+
+import com.looksee.pageBuilder.models.enums.Action;
+
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
-import com.looksee.pageBuilder.models.enums.Action;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
 

@@ -1,11 +1,23 @@
+####################################
+# Test page audit and journey paths
+###################################
 {
-	"message": {
-		"domainId": 1,
-		"accountId": 5,
-		"domainAuditRecordId": 11,
-		"pageAuditId": -1,
-		"url": "https://look-see.com"
-	}
+	"domainId": 1,
+	"accountId": 5,
+	"domainAuditRecordId": 11,
+	"pageAuditId": -1,
+	"url": "https://look-see.com"
+}
+
+####################################
+# Test single page audit path
+###################################
+{
+	"domainId": -1,
+	"accountId": 5,
+	"domainAuditRecordId": 11,
+	"pageAuditId": -1,
+	"url": "https://look-see.com"
 }
 
 

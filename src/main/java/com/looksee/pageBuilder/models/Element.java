@@ -11,7 +11,7 @@ import java.util.Set;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
@@ -36,10 +36,10 @@ public class Element extends LookseeObject implements Comparable<Element> {
 	private String template;
 	private String text;
 	
-	@Property
+	@CompositeProperty
 	private Map<String, String> attributes = new HashMap<>();
 	
-	@Property
+	@CompositeProperty
 	private Map<String, String> pre_render_css_values = new HashMap<>();
 	
 	@Relationship(type = "HAS", direction = Direction.OUTGOING)

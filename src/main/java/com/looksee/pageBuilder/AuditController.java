@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import com.looksee.pageBuilder.services.AuditRecordService;
 import com.looksee.pageBuilder.models.journeys.Journey;
 import com.looksee.pageBuilder.gcp.PubSubPageCreatedPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubErrorPublisherImpl;
+import com.looksee.pageBuilder.gcp.PubSubJourneyVerifiedPublisherImpl;
 import com.looksee.pageBuilder.mapper.Body;
 import com.looksee.pageBuilder.models.AuditRecord;
 import com.looksee.pageBuilder.models.ElementState;
@@ -44,6 +46,7 @@ import com.looksee.pageBuilder.models.message.PageDataExtractionError;
 import com.looksee.pageBuilder.models.message.UrlMessage;
 import com.looksee.pageBuilder.models.message.VerifiedJourneyMessage;
 import com.looksee.pageBuilder.services.BrowserService;
+import com.looksee.pageBuilder.services.ElementStateService;
 import com.looksee.pageBuilder.services.PageStateService;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ElementStateUtils;
@@ -65,44 +68,36 @@ public class AuditController {
 	private PageStateService page_state_service;
 	
 	@Autowired
+	private ElementStateService element_state_service;
+	
+	@Autowired
 	private AuditRecordService audit_record_service;
 	
 	@Autowired
 	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
 	
 	@Autowired
-	private PubSubPageCreatedPublisherImpl pubSubPageAuditPublisherImpl;
+	private PubSubJourneyVerifiedPublisherImpl pubSubJourneyVerifiedPublisherImpl;
+	
+	@Autowired
+	private PubSubPageCreatedPublisherImpl pubSubPageCreatedPublisherImpl;
 	
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	public ResponseEntity receiveMessage(@RequestBody Body body) 
 			throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException 
 	{
-		System.out.println("Body content :: "+body);
 		Body.Message message = body.getMessage();
-		System.out.println("Message content :: "+message);
 		String data = message.getData();
-		System.out.println("data :: "+data);
 	    String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
-	    System.out.println("Target data :: "+target);
 	    ObjectMapper input_mapper = new ObjectMapper();
         UrlMessage url_msg = input_mapper.readValue(target, UrlMessage.class);
         
-	    //UrlMessage url_msg =  null;//(UrlMessage)body.getMessage().getData();	    
-	    System.out.println("data 2 : "+target);
-	    //convert target to URL message
-	    
-	    
 	    AuditRecord audit_record = new PageAuditRecord(ExecutionStatus.BUILDING_PAGE, new HashSet<>(), true);
 		
 		audit_record = audit_record_service.save(audit_record);
 		audit_record_service.addPageAuditToDomainAudit(url_msg.getDomainAuditRecordId(), 
 														audit_record.getId());
 		
-		System.out.println("message acct id :: "+url_msg.getAccountId());
-		System.out.println("message domain audit id :: "+url_msg.getDomainAuditRecordId());
-		System.out.println("message domain id :: "+url_msg.getDomainId());
-		System.out.println("message page audit id :: "+url_msg.getPageAuditId());
-		System.out.println("message url :: "+url_msg.getUrl());
 		URL url = new URL(url_msg.getUrl());
 		
 	    JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();
@@ -122,16 +117,14 @@ public class AuditController {
 																						"Received "+http_status+" status while building page state "+url_msg.getUrl());
 
 				String audit_record_json = mapper.writeValueAsString(page_extraction_err);
-				log.warn("page build update = "+audit_record_json);
 				pubSubErrorPublisherImpl.publish(audit_record_json);
 			}
 			else {
 				//update audit record with progress
 				page_state = browser_service.buildPageState(url); 
-				
-				log.warn("saving page state....");
-				final PageState page_state_record = page_state_service.save(page_state);
-				audit_record_service.addPageToAuditRecord(audit_record.getId(), page_state_record.getId());				
+				page_state = page_state_service.save(page_state);
+				log.warn("saved page state :: "+page_state.getId());
+				audit_record_service.addPageToAuditRecord(audit_record.getId(), page_state.getId());				
 			}
 		}
 		catch(Exception e) {
@@ -142,14 +135,13 @@ public class AuditController {
 																						"An exception occurred while building page state "+url_msg.getUrl()+".\n"+e.getMessage());
 
 			String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
-			log.warn("audit progress update = "+element_extraction_str);
 			pubSubErrorPublisherImpl.publish(element_extraction_str);
 		    
 			log.error("An exception occurred that bubbled up to the page state builder");
 			e.printStackTrace();
 		}
 	    
-		log.warn("Element extraction message received...");
+		//log.warn("Extracting element states...");
 		try {
 			URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
 			BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
@@ -161,33 +153,35 @@ public class AuditController {
 																					xpaths,
 																					page_url,
 																					page_screenshot.getHeight());
-			
+
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 			page_state.setElements(element_states);
+			
+			saveNewElements(page_state.getId(), element_states);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
 		
 		//if domain audit id is less than zero then this is a single page audit
-		if(url_msg.getDomainAuditRecordId() < 0) {
-			//send PageBuilt message to pub/sub
-	   		PageBuiltMessage element_extraction_msg = new PageBuiltMessage(url_msg.getAccountId(),
-																	 		 url_msg.getDomainAuditRecordId(),
-				   															 url_msg.getDomainId(), 
-				   															 page_state.getId(),
-				   															 audit_record.getId());
-			
-			String element_extraction_str = mapper.writeValueAsString(element_extraction_msg);
-			log.warn("page build update = "+element_extraction_str);
-			//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-		    pubSubPageAuditPublisherImpl.publish(element_extraction_str);
-		}
-		else {
+		//send PageBuilt message to pub/sub
+		log.warn("page state id :: " + page_state.getId());
+   		PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
+																 		 url_msg.getDomainAuditRecordId(),
+			   															 url_msg.getDomainId(), 
+			   															 page_state.getId(),
+			   															 audit_record.getId());
+		
+		String page_built_str = mapper.writeValueAsString(page_built_msg);
+		//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
+	    pubSubPageCreatedPublisherImpl.publish(page_built_str);
+
+		if(url_msg.getDomainAuditRecordId() >= 0) {
 			List<Step> steps = new ArrayList<>();
 			steps.add(new Step(page_state, null));
-			
+			log.warn("adding steps to journey");
 			Journey journey = new Journey(steps);
+			log.warn("building journey Candidate message");
 			
 			VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey, 
 																			PathStatus.READY, 
@@ -195,15 +189,41 @@ public class AuditController {
 																			url_msg.getDomainId(), 
 																			url_msg.getAccountId(), 
 																			url_msg.getDomainAuditRecordId());
-			
+			log.warn("sending Journey Candidate");
 			String journey_msg_str = mapper.writeValueAsString(journey_msg);
-			log.warn("page build update = "+journey_msg_str);
-			//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-		    pubSubPageAuditPublisherImpl.publish(journey_msg_str);
+
+			pubSubJourneyVerifiedPublisherImpl.publish(journey_msg_str);
 		}
 		
 		return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);
 	}
+	
+	private List<Long> saveNewElements(long page_state_id, List<ElementState> element_states) {		
+		/*
+		List<String> element_keys = new ArrayList<>();
+
+		for(ElementState element : element_states){
+			element_keys.add(element.getKey());
+	   	}
+		*/
+		Set<String> existing_keys = new HashSet<>();
+		existing_keys.addAll(element_state_service.getAllExistingKeys(page_state_id));
+		//List<ElementState> existing_elements = element_state_service.getElements(existing_keys);
+		return element_states.parallelStream()
+									   .filter(f -> !existing_keys.contains(f.getKey()))
+									   .map(element -> element_state_service.save(element).getId())
+									   .collect(Collectors.toList());
+		/*
+		List<Long> existing_element_ids = existing_elements
+													   .parallelStream()
+													   .map(ElementState::getId)
+													   .collect(Collectors.toList());
+		for(ElementState element : new_element_states){
+			element_ids.add(element_state_service.save(element).getId());
+	   	}
+		return element_ids;
+		 */
+	}	
 
 }
 // [END run_pubsub_handler]

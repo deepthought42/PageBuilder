@@ -318,7 +318,7 @@ public class BrowserService {
 		boolean complete = false;
 		int cnt = 0;
 		do {
-			log.warn("getting browser connection... ");
+			log.debug("getting browser connection... ");
 			Browser browser = null;
 			try {
 				browser = getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
@@ -352,7 +352,7 @@ public class BrowserService {
 				}
 			}
 			cnt++;
-		}while(!complete && cnt < 10000);
+		}while(!complete && cnt < 100);
 		
 		return page_state;
 	}
@@ -406,7 +406,7 @@ public class BrowserService {
 
 		URL current_url = new URL(browser.getDriver().getCurrentUrl());
 		String url_without_protocol = BrowserUtils.getPageUrl(current_url.toString());
-		log.warn("building page state for URL :: "+current_url);
+		
 		if(current_url.toString().contains("dashboard")) {
 			log.warn("BUILDING DASHBOARD PAGE STATE...");
 			log.warn("url_without_protocol = "+url_without_protocol);
@@ -417,7 +417,7 @@ public class BrowserService {
 
 		boolean is_secure = BrowserUtils.checkIfSecure(current_url);
         int status_code = BrowserUtils.getHttpStatus(current_url);
-
+        log.warn("is secure = "+is_secure);
         //remove 3rd party chat apps such as drift, and ...(NB: fill in as more identified)
         //browser.removeDriftChat();
         
@@ -539,7 +539,7 @@ public class BrowserService {
 				}
 			}
 			cnt++;
-		}while(rendering_incomplete && cnt < 10000);
+		}while(rendering_incomplete && cnt < 100);
 
 		return elements;
 	}
@@ -693,6 +693,7 @@ public class BrowserService {
 						String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 						
 						element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
+						//element_screenshot.getGraphics().dispose();
 					}
 					catch( Exception e) {
 						//do nothing
@@ -722,6 +723,7 @@ public class BrowserService {
 						}
 						//e.printStackTrace();
 					}
+					element_screenshot.flush();
 				}
 				else {
 					//TODO: extract image from full page screenshot manually
