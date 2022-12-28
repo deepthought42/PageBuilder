@@ -73,3 +73,20 @@ sudo docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/pag
 Run the following command in Linux to create a keystore called api_key with a privateKeyEntry
 
 openssl pkcs12 -export -inkey private.key -in certificate.crt -out api_key.p12
+
+# Testing
+
+## Sending url message
+
+	log in to Google Cloud console and navigate to PubSub service
+	Under topics find the URL Topic and select "Messages" from the sub navigation menu
+	
+	Send the following message or one that is similar
+	
+	{
+		"domainId": 1,
+		"accountId": 5,
+		"domainAuditRecordId": 11,
+		"pageAuditId": -1,
+		"url": "look-see.com"
+	}

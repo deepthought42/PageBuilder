@@ -9,8 +9,8 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
@@ -47,10 +47,10 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 	
 	private boolean visible;
 	
-	@Property
+	@CompositeProperty
 	private Map<String, String> rendered_css_values = new HashMap<>();
 	
-	@Property
+	@CompositeProperty
 	private Map<String, String> attributes = new HashMap<>();
 	
 	@Relationship(type = "HAS_CHILD", direction = Direction.OUTGOING)

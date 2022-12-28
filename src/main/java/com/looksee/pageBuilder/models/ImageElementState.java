@@ -6,12 +6,13 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.looksee.pageBuilder.gcp.ImageSafeSearchAnnotation;
 import com.looksee.pageBuilder.models.enums.ElementClassification;
 
-
+@Node
 public class ImageElementState extends ElementState {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageElementState.class);

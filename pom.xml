@@ -14,6 +14,7 @@
         <java.version>1.8</java.version>
 	    <springboot.version>2.6.13</springboot.version>
     </properties>
+    
     <dependencyManagement>
 	    <dependencies>
 	      <dependency>

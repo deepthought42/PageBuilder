@@ -1,7 +1,7 @@
 resilience4j.retry:
     configs:
         default:
-            maxAttempts: 50
+            maxAttempts: 1
             waitDuration: 5s
             retryExceptions:
                 - org.springframework.web.client.HttpServerErrorException
@@ -11,7 +11,7 @@ resilience4j.retry:
                 - java.net.ConnectException
                 - java.lang.Exception
         webdriver:
-            maxAttempts: 100
+            maxAttempts: 1
             waitDuration: 1s
             retryExceptions:
                 - org.openqa.selenium.WebDriverException
@@ -26,7 +26,7 @@ resilience4j.retry:
                 - java.net.SocketException
                 - java.lang.NullPointerException
         neoforj:
-            maxAttempts: 500
+            maxAttempts: 10
             waitDuration: 1s
             retryExceptions:
                 - org.neo4j.ogm.exception.ConnectionException
@@ -38,7 +38,7 @@ resilience4j.retry:
                 - java.net.SocketException
                 - java.util.NoSuchElementException
         gcp:
-            maxAttempts: 20
+            maxAttempts: 5
             waitDuration: 5s
             retryExceptions:
                 - java.io.IOException
@@ -50,7 +50,7 @@ resilience4j.retry:
                 - java.lang.RuntimeException
                 - javax.imageio.IIOException
         builder:
-            maxAttempts: 1000
+            maxAttempts: 5
             waitDuration: 2s
             retryExceptions:
                 - org.openqa.selenium.WebDriverException

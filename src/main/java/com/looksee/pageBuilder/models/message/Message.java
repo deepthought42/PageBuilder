@@ -1,9 +1,5 @@
 package com.looksee.pageBuilder.models.message;
 
-import java.util.UUID;
-
-import org.threeten.bp.LocalDateTime;
-
 /**
  * Core Message object that defines global fields that are to be used by apage_idll Message objects
  */
