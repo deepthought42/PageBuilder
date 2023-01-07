@@ -773,6 +773,7 @@ public class BrowserUtils {
 		}
 	    catch(IOException e) {
 	    	status_code = 404;
+	    	e.printStackTrace();
 	    }
 		
 		return status_code;

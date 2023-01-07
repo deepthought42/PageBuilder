@@ -403,7 +403,6 @@ public class BrowserService {
 	 */
 	public PageState buildPageState( Browser browser ) throws WebDriverException, IOException {
 		assert browser != null;
-
 		URL current_url = new URL(browser.getDriver().getCurrentUrl());
 		String url_without_protocol = BrowserUtils.getPageUrl(current_url.toString());
 		

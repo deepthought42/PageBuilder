@@ -16,8 +16,8 @@ public class PageAuditRecord extends AuditRecord {
 	@Relationship(type = "HAS")
 	private Set<Audit> audits;
 	
-	private long elements_found;
-	private long elements_reviewed;
+	private long elementsFound;
+	private long elementsReviewed;
 	
 	public PageAuditRecord() {
 		setAudits(new HashSet<>());
@@ -69,18 +69,18 @@ public class PageAuditRecord extends AuditRecord {
 	}
 
 	public long getElementsFound() {
-		return elements_found;
+		return elementsFound;
 	}
 
 	public void setElementsFound(long elements_found) {
-		this.elements_found = elements_found;
+		this.elementsFound = elements_found;
 	}
 
 	public long getElementsReviewed() {
-		return elements_reviewed;
+		return elementsReviewed;
 	}
 
 	public void setElementsReviewed(long elements_reviewed) {
-		this.elements_reviewed = elements_reviewed;
+		this.elementsReviewed = elements_reviewed;
 	}
 }
