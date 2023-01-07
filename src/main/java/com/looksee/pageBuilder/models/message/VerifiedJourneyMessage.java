@@ -14,9 +14,8 @@ public class VerifiedJourneyMessage extends Message {
 	private PathStatus status;
 	private BrowserType browser;
 	
-	public VerifiedJourneyMessage() {
-		super(-1, -1, -1);
-	}
+	public VerifiedJourneyMessage() {	}
+	
 	public VerifiedJourneyMessage( Journey journey, 
 								   PathStatus status, 
 								   BrowserType browser,

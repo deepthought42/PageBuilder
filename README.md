@@ -56,11 +56,12 @@ docker run -p 80:80 -p 8080:8080 -p 9080:9080 -p 443:443 --name look-see look-se
 
 ### Deploy docker container to gcr
 
-docker build --no-cache -t gcr.io/cosmic-envoy-280619/look-see-api:v#.#.# .
-
-docker push gcr.io/cosmic-envoy-280619/look-see-api:v#.#.#
-
 gcloud auth print-access-token | sudo docker login   -u oauth2accesstoken   --password-stdin https://us-central1-docker.pkg.dev
+
+sudo docker build --no-cache -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/#.#.# .
+
+sudo docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/#.#.#
+
 
 sudo docker build --no-cache -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/page-builder .
 
@@ -90,3 +91,11 @@ openssl pkcs12 -export -inkey private.key -in certificate.crt -out api_key.p12
 		"pageAuditId": -1,
 		"url": "look-see.com"
 	}
+	
+Migration notes:
+
+	01-06-2023: Replace isSecure property with secured property in PageState objects
+		
+		MATCH (n:PageState) SET n.secured=n.isSecure RETURN n
+		MATCH (n:PageState) SET n.isSecure=NULL RETURN n
+		

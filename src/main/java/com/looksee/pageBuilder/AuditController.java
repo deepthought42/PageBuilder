@@ -83,7 +83,7 @@ public class AuditController {
 	private PubSubPageCreatedPublisherImpl pubSubPageCreatedPublisherImpl;
 	
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity receiveMessage(@RequestBody Body body) 
+	public ResponseEntity<String> receiveMessage(@RequestBody Body body) 
 			throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException 
 	{
 		Body.Message message = body.getMessage();
@@ -98,9 +98,10 @@ public class AuditController {
 		audit_record_service.addPageAuditToDomainAudit(url_msg.getDomainAuditRecordId(), 
 														audit_record.getId());
 		
-		URL url = new URL(url_msg.getUrl());
+		//URL url = new URL(url_msg.getUrl());
+		URL url = new URL(BrowserUtils.sanitizeUserUrl(url_msg.getUrl()));
 		
-	    JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();
+	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 	    PageState page_state = null;
 	    
 	    try {						
@@ -108,7 +109,7 @@ public class AuditController {
 
 			//usually code 301 is returned which is a redirect, which is usually transferring to https
 			if(http_status == 404 || http_status == 408) {
-				log.warn("Recieved 404 status for link :: "+url_msg.getUrl());
+				log.warn("Recieved " + http_status + "status for link :: "+url_msg.getUrl());
 				//send message to audit manager letting it know that an error occurred
 				PageDataExtractionError page_extraction_err = new PageDataExtractionError(url_msg.getDomainId(), 
 																						url_msg.getAccountId(), 
@@ -118,6 +119,8 @@ public class AuditController {
 
 				String audit_record_json = mapper.writeValueAsString(page_extraction_err);
 				pubSubErrorPublisherImpl.publish(audit_record_json);
+				
+				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
 			else {
 				//update audit record with progress
@@ -126,6 +129,63 @@ public class AuditController {
 				log.warn("saved page state :: "+page_state.getId());
 				audit_record_service.addPageToAuditRecord(audit_record.getId(), page_state.getId());				
 			}
+		
+			log.warn("Extracting element states...");
+			URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
+			BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
+			URL page_url = new URL(BrowserUtils.sanitizeUrl(page_state.getUrl(),
+															page_state.isSecured()));
+			
+			List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
+			List<ElementState> element_states = browser_service.buildPageElements(	page_state, 
+																					xpaths,
+																					page_url,
+																					page_screenshot.getHeight());
+
+			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
+			page_state.setElements(element_states);
+			
+			List<Long> element_ids = saveNewElements(page_state.getId(), element_states);
+			page_state_service.addAllElements(page_state.getId(), element_ids);
+			/*
+			for(long element_id : element_ids) {
+				page_state_service.addElement(page_state.getId(), element_id);
+			}
+			*/
+			
+			//if domain audit id is less than zero then this is a single page audit
+			//send PageBuilt message to pub/sub
+			log.warn("page state id :: " + page_state.getId());
+	   		PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
+																	 		 url_msg.getDomainAuditRecordId(),
+				   															 url_msg.getDomainId(), 
+				   															 page_state.getId(),
+				   															 audit_record.getId());
+			
+			String page_built_str = mapper.writeValueAsString(page_built_msg);
+			//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
+		    pubSubPageCreatedPublisherImpl.publish(page_built_str);
+
+			if(url_msg.getDomainAuditRecordId() >= 0) {
+				List<Step> steps = new ArrayList<>();
+				steps.add(new Step(page_state, null));
+				log.warn("adding steps to journey");
+				Journey journey = new Journey(steps);
+				log.warn("building journey Candidate message");
+				
+				VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey, 
+																				PathStatus.READY, 
+																				BrowserType.CHROME, 
+																				url_msg.getDomainId(), 
+																				url_msg.getAccountId(), 
+																				url_msg.getDomainAuditRecordId());
+				log.warn("sending verified journey");
+				String journey_msg_str = mapper.writeValueAsString(journey_msg);
+
+				pubSubJourneyVerifiedPublisherImpl.publish(journey_msg_str);
+			}
+			
+			return new ResponseEntity<String>("Successfully sent message to verifed journey topic", HttpStatus.OK);
 		}
 		catch(Exception e) {
 			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getDomainId(), 
@@ -139,90 +199,19 @@ public class AuditController {
 		    
 			log.error("An exception occurred that bubbled up to the page state builder");
 			e.printStackTrace();
-		}
-	    
-		//log.warn("Extracting element states...");
-		try {
-			URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
-			BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
-			URL page_url = new URL(BrowserUtils.sanitizeUrl(page_state.getUrl(),
-															page_state.isSecure()));
 			
-			List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
-			List<ElementState> element_states = browser_service.buildPageElements(	page_state, 
-																					xpaths,
-																					page_url,
-																					page_screenshot.getHeight());
-
-			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
-			page_state.setElements(element_states);
-			
-			saveNewElements(page_state.getId(), element_states);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
+			return new ResponseEntity<String>("Error building page state for url "+url_msg.getUrl(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		//if domain audit id is less than zero then this is a single page audit
-		//send PageBuilt message to pub/sub
-		log.warn("page state id :: " + page_state.getId());
-   		PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
-																 		 url_msg.getDomainAuditRecordId(),
-			   															 url_msg.getDomainId(), 
-			   															 page_state.getId(),
-			   															 audit_record.getId());
-		
-		String page_built_str = mapper.writeValueAsString(page_built_msg);
-		//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-	    pubSubPageCreatedPublisherImpl.publish(page_built_str);
-
-		if(url_msg.getDomainAuditRecordId() >= 0) {
-			List<Step> steps = new ArrayList<>();
-			steps.add(new Step(page_state, null));
-			log.warn("adding steps to journey");
-			Journey journey = new Journey(steps);
-			log.warn("building journey Candidate message");
-			
-			VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey, 
-																			PathStatus.READY, 
-																			BrowserType.CHROME, 
-																			url_msg.getDomainId(), 
-																			url_msg.getAccountId(), 
-																			url_msg.getDomainAuditRecordId());
-			log.warn("sending Journey Candidate");
-			String journey_msg_str = mapper.writeValueAsString(journey_msg);
-
-			pubSubJourneyVerifiedPublisherImpl.publish(journey_msg_str);
-		}
-		
-		return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);
 	}
 	
 	private List<Long> saveNewElements(long page_state_id, List<ElementState> element_states) {		
-		/*
-		List<String> element_keys = new ArrayList<>();
-
-		for(ElementState element : element_states){
-			element_keys.add(element.getKey());
-	   	}
-		*/
 		Set<String> existing_keys = new HashSet<>();
 		existing_keys.addAll(element_state_service.getAllExistingKeys(page_state_id));
-		//List<ElementState> existing_elements = element_state_service.getElements(existing_keys);
 		return element_states.parallelStream()
 									   .filter(f -> !existing_keys.contains(f.getKey()))
 									   .map(element -> element_state_service.save(element).getId())
 									   .collect(Collectors.toList());
-		/*
-		List<Long> existing_element_ids = existing_elements
-													   .parallelStream()
-													   .map(ElementState::getId)
-													   .collect(Collectors.toList());
-		for(ElementState element : new_element_states){
-			element_ids.add(element_state_service.save(element).getId());
-	   	}
-		return element_ids;
-		 */
 	}	
 
 }
