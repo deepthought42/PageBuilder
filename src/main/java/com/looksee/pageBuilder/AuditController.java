@@ -54,7 +54,7 @@ import com.looksee.utils.ImageUtils;
 
 
 /**
- * PubsubController consumes a Pub/Sub message.
+ * API Controller with main endpoint for running the page builder script
  * 
  */
 @RestController
@@ -143,16 +143,32 @@ public class AuditController {
 																					page_screenshot.getHeight());
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
-			page_state.setElements(element_states);
 			
 			List<Long> element_ids = saveNewElements(page_state.getId(), element_states);
-			page_state_service.addAllElements(page_state.getId(), element_ids);
-			/*
-			for(long element_id : element_ids) {
-				page_state_service.addElement(page_state.getId(), element_id);
-			}
-			*/
+			log.warn("element ids :: " + element_ids);
+			//page_state_service.addAllElements(page_state.getId(), element_ids);
+			List<ElementState> saved_elements = new ArrayList<>();
 			
+			while(!element_states.isEmpty()) {
+				ElementState element = element_states.remove(0);
+				element = element_state_service.save(element);
+				saved_elements.add(element);
+						
+				log.warn("adding element. ID = "+element.getId());
+				boolean add_element_outcome = page_state_service.addElement(page_state.getId(), element.getId());
+				log.warn("was adding element successful??  - "+add_element_outcome);
+	    	}
+		/*	
+	    for( ElementState element : element_states) {
+			ElementState saved_element = element_state_service.save(element);
+			saved_elements.add(saved_element);
+			long element_id = saved_element.getId();
+					
+			log.warn("adding element. ID = "+element_id);
+			page_state_service.addElement(page_state.getId(), element_id);
+		}
+	    */
+			page_state.setElements(saved_elements);
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
 			log.warn("page state id :: " + page_state.getId());
@@ -163,7 +179,6 @@ public class AuditController {
 				   															 audit_record.getId());
 			
 			String page_built_str = mapper.writeValueAsString(page_built_msg);
-			//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
 		    pubSubPageCreatedPublisherImpl.publish(page_built_str);
 
 			if(url_msg.getDomainAuditRecordId() >= 0) {
@@ -206,14 +221,17 @@ public class AuditController {
 	}
 	
 	/**
+	 * Retrieves keys for all existing element states that are connected the the page with the given page state id
+	 * 
+	 * NOTE: This is best for a database with significant memory as the size of data can be difficult to process all at once
+	 * on smaller machines
 	 * 
 	 * @param page_state_id
 	 * @param element_states
-	 * @return
+	 * @return {@link List} of {@link ElementState} ids 
 	 */
 	private List<Long> saveNewElements(long page_state_id, List<ElementState> element_states) {		
-		Set<String> existing_keys = new HashSet<>();
-		existing_keys.addAll(element_state_service.getAllExistingKeys(page_state_id));
+		List<String> existing_keys = element_state_service.getAllExistingKeys(page_state_id);
 		return element_states.parallelStream()
 									   .filter(f -> !existing_keys.contains(f.getKey()))
 									   .map(element -> element_state_service.save(element).getId())

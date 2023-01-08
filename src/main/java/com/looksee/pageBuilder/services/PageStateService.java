@@ -140,12 +140,17 @@ public class PageStateService {
 		return page_state_repo.findByUrl(url);
 	}
 
-	public boolean addElement(long page_id, long element_id) {		
-		Optional<ElementState> element_state = getElementState(page_id, element_id);
-		
-		if(element_state.isPresent()) {
+	/**
+	 * 
+	 * @param page_id
+	 * @param element_id
+	 * @return true if {@link ElementState} is already connected to page. Otherwise, returns result of attempting to add element to page
+	 */
+	public boolean addElement(long page_id, long element_id) {				
+		if(getElementState(page_id, element_id).isPresent()) {
 			return true;
 		}
+		
 		return page_state_repo.addElement(page_id, element_id) != null;
 	}
 
