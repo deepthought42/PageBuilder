@@ -205,6 +205,12 @@ public class AuditController {
 		
 	}
 	
+	/**
+	 * 
+	 * @param page_state_id
+	 * @param element_states
+	 * @return
+	 */
 	private List<Long> saveNewElements(long page_state_id, List<ElementState> element_states) {		
 		Set<String> existing_keys = new HashSet<>();
 		existing_keys.addAll(element_state_service.getAllExistingKeys(page_state_id));
