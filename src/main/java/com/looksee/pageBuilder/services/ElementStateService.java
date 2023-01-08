@@ -32,26 +32,16 @@ public class ElementStateService {
 	private PageStateService page_state_service;
 	
 	/**
-	 * 
+	 * saves element state to database
 	 * @param element
-	 * @return
+	 * @return saved record of element state
 	 * 
 	 * @pre element != null
 	 */
 	public ElementState save(ElementState element) {
 		assert element != null;
-		//ElementState element_record = element_repo.findByKey(element.getKey());
-		//if(element_record == null){
-			//iterate over attributes
+
 		return element_repo.save(element);
-		/*}
-		else {
-			element_record.setBackgroundColor(element.getBackgroundColor());
-			element_record.setForegroundColor(element.getForegroundColor());
-			element_repo.save(element_record);
-		}
-		return element_record;
-		 */
 	}
 	
 	/**
@@ -193,11 +183,8 @@ public class ElementStateService {
 
 	public List<ElementState> saveAll(List<ElementState> element_states, long page_state_id) {
 		return element_states.parallelStream()
-									   //.filter(f -> !existing_keys.contains(f.getKey()))
 									   .map(element -> save(element))
 									   .collect(Collectors.toList());
-
-		//return element_repo.saveAll(element_states);
 	}
 
 	/**
