@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -98,7 +97,6 @@ public class AuditController {
 		audit_record_service.addPageAuditToDomainAudit(url_msg.getDomainAuditRecordId(), 
 														audit_record.getId());
 		
-		//URL url = new URL(url_msg.getUrl());
 		URL url = new URL(BrowserUtils.sanitizeUserUrl(url_msg.getUrl()));
 		
 	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
