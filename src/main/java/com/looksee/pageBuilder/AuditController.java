@@ -142,9 +142,12 @@ public class AuditController {
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 			
-			List<Long> element_ids = saveNewElements(page_state.getId(), element_states);
+			List<ElementState> saved_elements = saveNewElements(page_state.getId(), element_states);
+			List<Long> element_ids = saved_elements.parallelStream()
+												   .map(element -> element.getId()).collect(Collectors.toList());
 			log.warn("element ids :: " + element_ids);
-			//page_state_service.addAllElements(page_state.getId(), element_ids);
+			page_state_service.addAllElements(page_state.getId(), element_ids);
+			/*
 			List<ElementState> saved_elements = new ArrayList<>();
 			
 			while(!element_states.isEmpty()) {
@@ -156,6 +159,7 @@ public class AuditController {
 				boolean add_element_outcome = page_state_service.addElement(page_state.getId(), element.getId());
 				log.warn("was adding element successful??  - "+add_element_outcome);
 	    	}
+	    	*/
 		/*	
 	    for( ElementState element : element_states) {
 			ElementState saved_element = element_state_service.save(element);
@@ -228,11 +232,9 @@ public class AuditController {
 	 * @param element_states
 	 * @return {@link List} of {@link ElementState} ids 
 	 */
-	private List<Long> saveNewElements(long page_state_id, List<ElementState> element_states) {		
-		List<String> existing_keys = element_state_service.getAllExistingKeys(page_state_id);
+	private List<ElementState> saveNewElements(long page_state_id, List<ElementState> element_states) {		
 		return element_states.parallelStream()
-									   .filter(f -> !existing_keys.contains(f.getKey()))
-									   .map(element -> element_state_service.save(element).getId())
+									   .map(element -> element_state_service.save(element))
 									   .collect(Collectors.toList());
 	}	
 
