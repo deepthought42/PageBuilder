@@ -27,7 +27,6 @@ import io.github.resilience4j.retry.annotation.Retry;
  *
  */
 @Service
-@Retry(name = "neoforj")
 public class PageStateService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(PageStateService.class.getName());
@@ -147,10 +146,11 @@ public class PageStateService {
 	 * @return true if {@link ElementState} is already connected to page. Otherwise, returns result of attempting to add element to page
 	 */
 	public boolean addElement(long page_id, long element_id) {				
+		/*
 		if(getElementState(page_id, element_id).isPresent()) {
 			return true;
 		}
-		
+		*/
 		return page_state_repo.addElement(page_id, element_id) != null;
 	}
 

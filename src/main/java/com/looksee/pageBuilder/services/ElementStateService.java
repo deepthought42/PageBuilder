@@ -17,10 +17,7 @@ import com.looksee.pageBuilder.models.Element;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 
-import io.github.resilience4j.retry.annotation.Retry;
-
 @Service
-@Retry(name="neoforj")
 public class ElementStateService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ElementStateService.class);
