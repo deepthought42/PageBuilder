@@ -347,6 +347,7 @@ public class PageState extends LookseeObject {
 			key += element.getKey();
 		}
 		*/
+		log.warn("page source value size :: " +getSrc().length());
 		return "pagestate" + org.apache.commons.codec.digest.DigestUtils.sha256Hex( this.getUrl() + BrowserService.generalizeSrc(BrowserService.extractBody(this.getSrc()) ));
 	}
 

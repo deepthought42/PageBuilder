@@ -63,6 +63,7 @@ import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.enums.TemplateType;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ImageUtils;
+import com.looksee.utils.TimingUtils;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import us.codecraft.xsoup.Xsoup;
@@ -300,12 +301,14 @@ public class BrowserService {
 	 * Process used by the web crawler to build {@link PageState} from {@link PageVersion}
 	 * 
 	 * @param url
+	 * @param browser TODO
 	 * @return
 	 * @throws IOException 
 	 * @throws XPathExpressionException 
 	 * @throws Exception
 	 */
-	public PageState buildPageState(URL url) throws Exception {
+	//@Retry(name = "webdriver")
+	public PageState buildPageState(URL url, Browser browser) throws Exception {
 		assert url != null;
 		
 		int http_status = BrowserUtils.getHttpStatus(url);
@@ -315,18 +318,21 @@ public class BrowserService {
 		}
 		
 		PageState page_state = null;
+		/*
 		boolean complete = false;
 		int cnt = 0;
 		do {
+		*/
 			log.debug("getting browser connection... ");
-			Browser browser = null;
-			try {
+			//Browser browser = null;
+			//try {
 				browser = getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 				browser.navigateTo(url.toString());
 
 				page_state = performBuildPageProcess( browser);
-				complete = true;
-				cnt=Integer.MAX_VALUE;
+				//complete = true;
+				//cnt=Integer.MAX_VALUE;
+			/*
 			}
 			catch(MalformedURLException e) {
 				break;
@@ -342,6 +348,10 @@ public class BrowserService {
 			catch(WebDriverException | GridException e) {								
 				log.warn("Selenium Exception occurred while building page state :: "+url);
 			}
+			catch(NullPointerException e) {
+				log.warn("Null Pointer Exception occurred while building page state");
+				e.printStackTrace();
+			}
 			catch(Exception e) {
 				log.warn("Exception occurred while building page state");
 				e.printStackTrace();
@@ -351,8 +361,9 @@ public class BrowserService {
 					browser.close();
 				}
 			}
-			cnt++;
-		}while(!complete && cnt < 100);
+			*/
+		//	cnt++;
+		//}while(!complete && cnt < 50);
 		
 		return page_state;
 	}
@@ -375,7 +386,7 @@ public class BrowserService {
 	 * @throws IOException 
 	 * @throws GridException 
 	 */
-	public PageState performBuildPageProcess(Browser browser) throws WebDriverException, IOException 
+	public PageState performBuildPageProcess(Browser browser) throws WebDriverException, IOException, NullPointerException
 	{
 		assert browser != null;
 		
@@ -401,7 +412,7 @@ public class BrowserService {
 	 * 
 	 * @pre browser != null
 	 */
-	public PageState buildPageState( Browser browser ) throws WebDriverException, IOException {
+	public PageState buildPageState( Browser browser ) throws WebDriverException, IOException, NullPointerException {
 		assert browser != null;
 		URL current_url = new URL(browser.getDriver().getCurrentUrl());
 		String url_without_protocol = BrowserUtils.getPageUrl(current_url.toString());
@@ -453,7 +464,8 @@ public class BrowserService {
 		long x_offset = browser.getXScrollOffset();
 		long y_offset = browser.getYScrollOffset();
 		Dimension size = browser.getDriver().manage().window().getSize();
-
+		
+		log.warn("source length :: "+source.length());
 		PageState page_state = new PageState(
 										viewport_screenshot_url,
 										new ArrayList<>(),
@@ -515,7 +527,8 @@ public class BrowserService {
 				//get ElementState List by asking multiple bots to build xpaths in parallel
 				//for each xpath then extract element state
 				elements = getDomElementStates(page_state, xpaths, browser, elements_mapped, sanitized_url, page_height);
-				break;
+				cnt = 11;
+				rendering_incomplete=false;
 			}
 			catch (NullPointerException e) {
 				log.warn("NPE thrown during element state extraction");
@@ -538,7 +551,7 @@ public class BrowserService {
 				}
 			}
 			cnt++;
-		}while(rendering_incomplete && cnt < 100);
+		}while(rendering_incomplete && cnt < 10);
 
 		return elements;
 	}

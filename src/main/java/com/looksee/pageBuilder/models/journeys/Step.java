@@ -1,13 +1,10 @@
 package com.looksee.pageBuilder.models.journeys;
 
-import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.looksee.pageBuilder.models.LookseeObject;
 import com.looksee.pageBuilder.models.PageState;
 
-
-@Node
 public class Step extends LookseeObject {
 	
 	@Relationship(type = "STARTS_WITH")
@@ -24,6 +21,7 @@ public class Step extends LookseeObject {
 		super();
 		setStartPage(start_page);
 		setEndPage(end_page);
+		setKey(generateKey());
 	}
 	
 	public PageState getStartPage() {

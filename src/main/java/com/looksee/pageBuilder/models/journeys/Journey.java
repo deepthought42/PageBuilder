@@ -36,9 +36,9 @@ public class Journey extends LookseeObject {
 		setKey(generateKey());
 	}
 	
-	public Journey(List<Step> steps, List<Long> ordered_keys) {
+	public Journey(List<Step> steps, List<Long> ordered_ids) {
 		setSteps(steps);
-		setOrderedIds(ordered_keys);
+		setOrderedIds(ordered_ids);
 		setKey(generateKey());
 	}
 	

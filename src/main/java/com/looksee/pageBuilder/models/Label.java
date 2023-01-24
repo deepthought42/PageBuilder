@@ -1,7 +1,5 @@
 package com.looksee.pageBuilder.models;
 
-import java.util.UUID;
-
 public class Label extends LookseeObject{
 	private String description;
 	private float score;
@@ -14,6 +12,7 @@ public class Label extends LookseeObject{
 	public Label(String description, float score) {
 		setDescription(description);
 		setScore(score);
+		setKey(generateKey());
 	}
 
 	public String getDescription() {
@@ -34,6 +33,6 @@ public class Label extends LookseeObject{
 
 	@Override
 	public String generateKey() {
-		return "label::"+UUID.randomUUID();
+		return "label::"+getDescription();
 	}
 }

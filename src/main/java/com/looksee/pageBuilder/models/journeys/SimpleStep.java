@@ -33,7 +33,8 @@ public class SimpleStep extends Step {
 				ElementState element,
 				Action action,
 				String action_input, 
-				PageState end_page) {
+				PageState end_page) 
+	{
 		setStartPage(start_page);
 		setElementState(element);
 		setAction(action);
