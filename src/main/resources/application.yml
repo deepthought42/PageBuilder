@@ -38,8 +38,8 @@ resilience4j.retry:
                 - java.net.SocketException
                 - java.util.NoSuchElementException
         gcp:
-            maxAttempts: 5
-            waitDuration: 5s
+            maxAttempts: 10
+            waitDuration: 1s
             retryExceptions:
                 - java.io.IOException
                 - com.google.cloud.storage.StorageException

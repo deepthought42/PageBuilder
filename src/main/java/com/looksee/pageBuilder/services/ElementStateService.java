@@ -38,7 +38,12 @@ public class ElementStateService {
 	public ElementState save(ElementState element) {
 		assert element != null;
 
-		return element_repo.save(element);
+		ElementState element_record = element_repo.findByKey(element.getKey());
+		if(element_record == null) {
+			return element_repo.save(element);
+		}
+		
+		return element_record;
 	}
 	
 	/**

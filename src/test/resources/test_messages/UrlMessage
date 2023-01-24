@@ -2,9 +2,9 @@
 # Test page audit and journey paths
 ###################################
 {
-	"domainId": 1,
-	"accountId": 5,
-	"domainAuditRecordId": 11,
+	"domainId": 10859,
+	"accountId": 0,
+	"domainAuditRecordId": 12,
 	"pageAuditId": -1,
 	"url": "look-see.com"
 }

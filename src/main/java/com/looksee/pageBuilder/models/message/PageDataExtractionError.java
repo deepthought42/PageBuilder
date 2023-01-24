@@ -2,7 +2,7 @@ package com.looksee.pageBuilder.models.message;
 
 public class PageDataExtractionError extends Message {
 	private String url;
-	private String error_message;
+	private String errorMessage;
 	
 	public PageDataExtractionError(long domainId, 
 								   long accountId, 
@@ -23,11 +23,11 @@ public class PageDataExtractionError extends Message {
 	}
 
 	public String getErrorMessage() {
-		return error_message;
+		return errorMessage;
 	}
 
 	public void setErrorMessage(String error_message) {
-		this.error_message = error_message;
+		this.errorMessage = error_message;
 	}
 
 }
