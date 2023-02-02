@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.pageBuilder.models.journeys.DomainMap;
 import com.looksee.pageBuilder.models.journeys.Journey;
+import com.looksee.pageBuilder.models.journeys.LandingStep;
 import com.looksee.pageBuilder.gcp.PubSubPageCreatedPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubErrorPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubJourneyVerifiedPublisherImpl;
@@ -41,6 +42,7 @@ import com.looksee.pageBuilder.models.message.PageBuiltMessage;
 import com.looksee.pageBuilder.models.message.PageDataExtractionError;
 import com.looksee.pageBuilder.models.message.UrlMessage;
 import com.looksee.pageBuilder.models.message.VerifiedJourneyMessage;
+import com.looksee.pageBuilder.services.AuditRecordService;
 import com.looksee.pageBuilder.services.BrowserService;
 import com.looksee.pageBuilder.services.DomainMapService;
 import com.looksee.pageBuilder.services.ElementStateService;
@@ -60,6 +62,9 @@ import com.looksee.utils.ImageUtils;
 public class AuditController {
 	private static Logger log = LoggerFactory.getLogger(AuditController.class);
 
+	@Autowired
+	private AuditRecordService audit_record_service;
+	
 	@Autowired
 	private BrowserService browser_service;
 	
@@ -117,8 +122,8 @@ public class AuditController {
 																						url_msg.getUrl().toString(), 
 																						"Received "+http_status+" status while building page state "+url_msg.getUrl());
 
-				String audit_record_json = mapper.writeValueAsString(page_extraction_err);
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				String error_json = mapper.writeValueAsString(page_extraction_err);
+				pubSubErrorPublisherImpl.publish(error_json);
 				
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
@@ -166,7 +171,7 @@ public class AuditController {
 		    log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
 			if(url_msg.getDomainAuditRecordId() >= 0) {
 				List<Step> steps = new ArrayList<>();
-				Step step = new Step(page_state, page_state);
+				Step step = new LandingStep(page_state);
 				step = step_service.save(step);
 				log.warn("Step = "+step);
 				log.warn("step id : "+step.getId());
@@ -179,14 +184,17 @@ public class AuditController {
 				
 				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map
 				log.warn("building journey Candidate message");
-				DomainMap domain_map = domain_map_service.findByDomainId(url_msg.getDomainId());
+				log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
+				
+				DomainMap domain_map = domain_map_service.findByDomainAuditId(url_msg.getDomainAuditRecordId());
 				if(domain_map == null) {
-					domain_map = new DomainMap();
-					domain_map = domain_map_service.save(domain_map);
+					domain_map = domain_map_service.save(new DomainMap());
+					log.warn("adding domain map to audit record = " + url_msg.getDomainAuditRecordId());
+
+					audit_record_service.addDomainMap(url_msg.getDomainAuditRecordId(), domain_map.getId());
 				}
 				
 				log.warn("domain map id = "+domain_map.getId());
-				log.warn("journey id = " + journey.getId());
 				
 				domain_map_service.addJourneyToDomainMap(journey.getId(), domain_map.getId());
 				

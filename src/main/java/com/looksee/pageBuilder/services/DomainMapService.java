@@ -39,6 +39,9 @@ public class DomainMapService {
 
 	public void addJourneyToDomainMap(long journey_id, long domain_map_id) {
 		domain_map_repo.addJourneyToDomainMap(journey_id, domain_map_id);
-		
+	}
+	
+	public DomainMap findByDomainAuditId(long domain_audit_id) {
+		return domain_map_repo.findByDomainAuditId(domain_audit_id);
 	}
 }
