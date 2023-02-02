@@ -13,15 +13,29 @@ import com.looksee.pageBuilder.models.enums.ExecutionStatus;
  * Record detailing an set of {@link Audit audits}.
  */
 public class PageAuditRecord extends AuditRecord {
+	
 	@Relationship(type = "HAS")
 	private Set<Audit> audits;
 	
-	private long elementsFound;
-	private long elementsReviewed;
+	private String url;
+	private long elements_found;
+	private long elements_reviewed;
 	
 	public PageAuditRecord() {
 		setAudits(new HashSet<>());
 		setKey(generateKey());
+	}
+	
+	/**
+	 * Constructor 
+	 * 
+	 * @param url
+	 * @param status
+	 */
+	public PageAuditRecord(String url, ExecutionStatus status) {
+		super(status);
+		setStatus(status);
+		setUrl(url);
 	}
 	
 	/**
@@ -35,8 +49,7 @@ public class PageAuditRecord extends AuditRecord {
 	 * @pre status != null;
 	 */
 	public PageAuditRecord(
-			ExecutionStatus status, 
-			Set<Audit> audits, 
+			ExecutionStatus status,
 			boolean is_part_of_domain_audit
 	) {
 		assert audits != null;
@@ -69,18 +82,26 @@ public class PageAuditRecord extends AuditRecord {
 	}
 
 	public long getElementsFound() {
-		return elementsFound;
+		return elements_found;
 	}
 
 	public void setElementsFound(long elements_found) {
-		this.elementsFound = elements_found;
+		this.elements_found = elements_found;
 	}
 
 	public long getElementsReviewed() {
-		return elementsReviewed;
+		return elements_reviewed;
 	}
 
 	public void setElementsReviewed(long elements_reviewed) {
-		this.elementsReviewed = elements_reviewed;
+		this.elements_reviewed = elements_reviewed;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 }

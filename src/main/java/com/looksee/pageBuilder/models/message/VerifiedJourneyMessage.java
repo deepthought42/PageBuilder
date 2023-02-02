@@ -1,9 +1,8 @@
 package com.looksee.pageBuilder.models.message;
 
-
-import com.looksee.pageBuilder.models.journeys.Journey;
 import com.looksee.pageBuilder.models.enums.BrowserType;
 import com.looksee.pageBuilder.models.enums.PathStatus;
+import com.looksee.pageBuilder.models.journeys.Journey;
 
 /**
  * 
@@ -14,7 +13,7 @@ public class VerifiedJourneyMessage extends Message {
 	private PathStatus status;
 	private BrowserType browser;
 	
-	public VerifiedJourneyMessage() {	}
+	public VerifiedJourneyMessage() {}
 	
 	public VerifiedJourneyMessage( Journey journey, 
 								   PathStatus status, 
@@ -23,7 +22,6 @@ public class VerifiedJourneyMessage extends Message {
 								   long account_id, 
 								   long audit_record_id)
 	{
-		super(account_id, audit_record_id, domain_id);
 		setJourney(journey);
 		setStatus(status);
 		setBrowser(browser);
@@ -65,3 +63,4 @@ public class VerifiedJourneyMessage extends Message {
 		this.journey = journey;
 	}
 }
+

@@ -15,6 +15,7 @@ import com.looksee.pageBuilder.models.PageAuditRecord;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.Screenshot;
 import com.looksee.pageBuilder.models.enums.AuditName;
+import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 import com.looksee.pageBuilder.models.repository.PageStateRepository;
 import com.looksee.pageBuilder.models.Audit;
 
@@ -32,6 +33,9 @@ public class PageStateService {
 	@Autowired
 	private PageStateRepository page_state_repo;
 
+	@Autowired
+	private ElementStateRepository element_state_repo;
+	
 	/**
 	 * Save a {@link PageState} object and its associated objects
 	 * @param page_state
@@ -86,7 +90,7 @@ public class PageStateService {
 	}
 	
 	public List<ElementState> getLinkElementStates(long page_state_id){
-		return page_state_repo.getLinkElementStates(page_state_id);
+		return element_state_repo.getLinkElementStates(page_state_id);
 	}
 	
 	public List<Screenshot> getScreenshots(String user_id, String page_key){

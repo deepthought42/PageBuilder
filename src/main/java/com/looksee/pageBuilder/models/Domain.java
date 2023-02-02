@@ -8,9 +8,6 @@ import java.util.Set;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
-
-
-
 /**
  * Encompasses a domain name as well as all {@link Test}s and {@link Group}s 
  * belong to this domain
