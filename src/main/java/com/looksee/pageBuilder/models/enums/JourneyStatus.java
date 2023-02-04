@@ -3,16 +3,18 @@ package com.looksee.pageBuilder.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
- * 
+ * ready - ready for expansion
+ * expanded - path has already been expanded and is ready for exploration
  */
-public enum AnimationType {
-	CAROUSEL("CAROUSEL"), 
-	LOADING("LOADING"), 
-	CONTINUOUS("CONTINUOUS");
+public enum JourneyStatus {
+	READY("READY"), 
+	EXPANDED("EXPANDED"),
+	DISCARDED("DISCARDED"),
+	EXAMINED("EXAMINED");
 	
 	private String shortName;
 
-    AnimationType (String shortName) {
+	JourneyStatus (String shortName) {
         this.shortName = shortName;
     }
 
@@ -22,11 +24,11 @@ public enum AnimationType {
     }
 
     @JsonCreator
-    public static AnimationType create (String value) {
+    public static JourneyStatus create (String value) {
         if(value == null) {
             throw new IllegalArgumentException();
         }
-        for(AnimationType v : values()) {
+        for(JourneyStatus v : values()) {
             if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }

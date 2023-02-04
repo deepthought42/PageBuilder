@@ -15,6 +15,7 @@ import com.looksee.pageBuilder.models.PageAuditRecord;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.Screenshot;
 import com.looksee.pageBuilder.models.enums.AuditName;
+import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 import com.looksee.pageBuilder.models.repository.PageStateRepository;
 import com.looksee.pageBuilder.models.Audit;
@@ -108,7 +109,7 @@ public class PageStateService {
 	public Collection<ElementState> getExpandableElements(List<ElementState> elements) {
 		List<ElementState> expandable_elements = new ArrayList<>();
 		for(ElementState elem : elements) {
-			if(elem.isLeaf()) {
+			if(ElementClassification.LEAF.equals(elem.getClassification())) {
 				expandable_elements.add(elem);
 			}
 		}
