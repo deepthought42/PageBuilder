@@ -5,3 +5,5 @@ target/
 *.properties.*
 
 .settings/
+
+LOG_FILE_IS_UNDEFINED

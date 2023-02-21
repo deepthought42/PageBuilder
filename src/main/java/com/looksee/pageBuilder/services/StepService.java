@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.looksee.pageBuilder.models.ElementState;
+import com.looksee.pageBuilder.models.journeys.LandingStep;
 import com.looksee.pageBuilder.models.journeys.LoginStep;
 import com.looksee.pageBuilder.models.journeys.SimpleStep;
 import com.looksee.pageBuilder.models.journeys.Step;
+import com.looksee.pageBuilder.models.repository.LandingStepRepository;
 import com.looksee.pageBuilder.models.repository.LoginStepRepository;
 import com.looksee.pageBuilder.models.repository.SimpleStepRepository;
 import com.looksee.pageBuilder.models.repository.StepRepository;
@@ -32,6 +34,9 @@ public class StepService {
 
 	@Autowired
 	private LoginStepRepository login_step_repo;
+	
+	@Autowired
+	private LandingStepRepository landing_step_repo;
 	
 	public Step findByKey(String step_key) {
 		return step_repo.findByKey(step_key);
@@ -109,6 +114,24 @@ public class StepService {
 			new_login_step.setTestUser(login_step_repo.addTestUser(new_login_step.getId(), login_step.getTestUser().getId()));
 			
 			return new_login_step;
+		}
+		else if(step instanceof LandingStep) {
+			LandingStep landing_step_record = landing_step_repo.findByKey(step.getKey());
+			
+			if(landing_step_record != null) {
+				landing_step_record.setStartPage(step.getStartPage());
+				
+				return landing_step_record;
+			}
+			else {
+				LandingStep landing_step = (LandingStep)step;
+				
+				Step saved_step = landing_step_repo.save(landing_step);
+				//page_state_repo.addStartPage(saved_step.getId(), landing_step.getStartPage().getId());
+				saved_step.setStartPage(landing_step.getStartPage());
+				
+				return saved_step;
+			}
 		}
 		else {
 			Step step_record = step_repo.findByKey(step.getKey());
