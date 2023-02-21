@@ -36,6 +36,7 @@ import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.enums.BrowserType;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
 import com.looksee.pageBuilder.models.enums.PathStatus;
 import com.looksee.pageBuilder.models.journeys.Step;
 import com.looksee.pageBuilder.models.message.PageBuiltMessage;
@@ -160,16 +161,19 @@ public class AuditController {
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
 			log.warn("page state id :: " + page_state.getId());
-	   		PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
-															 		 url_msg.getDomainAuditRecordId(),
-		   															 url_msg.getDomainId(), 
-		   															 page_state.getId());
-			
-			String page_built_str = mapper.writeValueAsString(page_built_msg);
-		    pubSubPageCreatedPublisherImpl.publish(page_built_str);
 
 		    log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
-			if(url_msg.getDomainAuditRecordId() >= 0) {
+		    PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
+		    		url_msg.getDomainAuditRecordId(),
+		    		url_msg.getDomainId(), 
+		    		page_state.getId(),
+		    		url_msg.getPageAuditRecordId());
+		    
+		    String page_built_str = mapper.writeValueAsString(page_built_msg);
+		    pubSubPageCreatedPublisherImpl.publish(page_built_str);
+
+		    if(url_msg.getDomainAuditRecordId() >= 0) {
+				
 				List<Step> steps = new ArrayList<>();
 				Step step = new LandingStep(page_state);
 				step = step_service.save(step);
@@ -177,7 +181,8 @@ public class AuditController {
 				log.warn("step id : "+step.getId());
 				steps.add(step);
 				log.warn("adding steps to journey = "+steps);
-				Journey journey = new Journey(steps);
+				Journey journey = new Journey(steps, JourneyStatus.VERIFIED);
+				journey.setCandidateKey(journey.generateKey());
 				log.warn("saving journey");
 				Journey saved_journey = journey_service.save(journey);
 				journey.setId(saved_journey.getId());
