@@ -8,14 +8,16 @@ import java.util.UUID;
 import org.springframework.data.neo4j.core.schema.Node;
 
 import com.looksee.pageBuilder.models.enums.AuditLevel;
+import com.looksee.pageBuilder.models.enums.AuditName;
 import com.looksee.pageBuilder.models.enums.ExecutionStatus;
-
 
 /**
  * Record detailing an set of {@link Audit audits}.
  */
 @Node
-public class AuditRecord extends LookseeObject {	
+public class AuditRecord extends LookseeObject {
+	private String url;
+	
 	private String status;
 	private String statusMessage;
 	private String level;
@@ -35,6 +37,9 @@ public class AuditRecord extends LookseeObject {
 
 	private String targetUserAge;
 	private String targetUserEducation;
+	
+	private List<AuditName> auditLabels;
+
 
 	//DESIGN SYSTEM VALUES
 	private List<String> colors;
@@ -42,22 +47,7 @@ public class AuditRecord extends LookseeObject {
 	public AuditRecord() {
 		setStartTime(LocalDateTime.now());
 		setStatus(ExecutionStatus.UNKNOWN);
-		setStatusMessage("");
-		setLevel(AuditLevel.UNKNOWN);
-		setContentAuditProgress(0.0);
-		setContentAuditMsg("");
-		setInfoArchitectureAuditProgress(0.0);
-		setInfoArchMsg("");
-		setAestheticAuditProgress(0.0);
-		setAestheticMsg("");
-		setDataExtractionProgress(0.0);
-		setDataExtractionMsg("");
-		setColors(new ArrayList<String>());
-	}
-	
-	public AuditRecord(ExecutionStatus status) {
-		setStartTime(LocalDateTime.now());
-		setStatus(status);
+		setUrl("");
 		setStatusMessage("");
 		setLevel(AuditLevel.UNKNOWN);
 		setContentAuditProgress(0.0);
@@ -90,7 +80,8 @@ public class AuditRecord extends LookseeObject {
 					   String dataExtractionMsg, 
 					   double dataExtractionProgress,
 					   LocalDateTime created_at, 
-					   LocalDateTime endTime
+					   LocalDateTime endTime, 
+					   String url
 	) {
 		setId(id);
 		setStatus(status);
@@ -108,6 +99,7 @@ public class AuditRecord extends LookseeObject {
 		setCreatedAt(created_at);
 		setEndTime(endTime);
 		setColors(new ArrayList<String>());
+		setUrl(url);
 	}
 
 	public String generateKey() {
@@ -233,10 +225,18 @@ public class AuditRecord extends LookseeObject {
 	public void setStatusMessage(String status_message) {
 		this.statusMessage = status_message;
 	}
+
+	public List<AuditName> getAuditLabels() {
+		return auditLabels;
+	}
+
+	public void setAuditLabels(List<AuditName> auditLabels) {
+		this.auditLabels = auditLabels;
+	}
 	
 	@Override
 	public String toString() {
-		return this.getId()+", "+this.getKey()+", "+this.getStatus()+", "+this.getStatusMessage();
+		return this.getId()+", "+this.getKey()+", "+this.getUrl()+", "+this.getStatus()+", "+this.getStatusMessage();
 	}
 	
 	public boolean isComplete() {
@@ -262,7 +262,16 @@ public class AuditRecord extends LookseeObject {
 							   getDataExtractionMsg(), 
 							   getDataExtractionProgress(), 
 							   getCreatedAt(), 
-							   getEndTime());
+							   getEndTime(),
+							   getUrl());
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	public List<String> getColors() {
