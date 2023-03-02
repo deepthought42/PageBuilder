@@ -131,7 +131,7 @@ public class AuditController {
 			else {
 				//update audit record with progress
 				page_state = browser_service.buildPageState(url, browser); 
-				page_state = page_state_service.save(page_state);
+				//page_state = page_state_service.save(page_state);
 				log.warn("saved page state :: "+page_state.getId());
 			}
 		
@@ -149,25 +149,28 @@ public class AuditController {
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 			
+			/*
 			List<ElementState> saved_elements = saveNewElements(page_state.getId(), element_states);
+
 			List<Long> element_ids = saved_elements.parallelStream()
 												   .map(element -> element.getId())
 												   .collect(Collectors.toList());
 			
 			log.warn("element ids :: " + element_ids);
 			page_state_service.addAllElements(page_state.getId(), element_ids);
-
-			page_state.setElements(saved_elements);
+*/
+			page_state.setElements(element_states);
+			page_state = page_state_service.save(page_state);
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
 			log.warn("page state id :: " + page_state.getId());
 
 		    log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
 		    PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
-		    		url_msg.getDomainAuditRecordId(),
-		    		url_msg.getDomainId(), 
-		    		page_state.getId(),
-		    		url_msg.getPageAuditRecordId());
+														    		url_msg.getDomainAuditRecordId(),
+														    		url_msg.getDomainId(), 
+														    		page_state.getId(),
+														    		url_msg.getPageAuditRecordId());
 		    
 		    String page_built_str = mapper.writeValueAsString(page_built_msg);
 		    pubSubPageCreatedPublisherImpl.publish(page_built_str);

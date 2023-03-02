@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.looksee.pageBuilder.models.journeys.Journey;
-import com.looksee.pageBuilder.models.journeys.Step;
 import com.looksee.pageBuilder.models.repository.JourneyRepository;
 
 @Service
@@ -19,21 +18,17 @@ public class JourneyService {
 	
 	public Journey save(Journey journey) {
 		Journey journey_record = journey_repo.findByKey(journey.getKey());
-		if(journey_record != null) {
-			return journey_record;
+		if(journey_record == null) {
+			journey_record = journey_repo.findByCandidateKey(journey.getCandidateKey());
+			if(journey_record == null) {
+				journey_record = journey_repo.save(journey);
+			}
+			else {
+				journey_record.setKey(journey.getKey());
+				journey_repo.save(journey_record);
+			}
 		}
-		journey_record = new Journey();
-
-		journey_record.setOrderedIds(journey.getOrderedIds());
-		journey_record.setKey(journey.generateKey());
-		journey_record = journey_repo.save(journey_record);
-		
-		for(Step step : journey.getSteps()) {
-			journey_repo.addStep(journey_record.getId(), step.getId());
-		}
-		
-		journey_record.setSteps(journey.getSteps());
-		return journey_record;	
+		return journey_record;
 	}
 	
 }

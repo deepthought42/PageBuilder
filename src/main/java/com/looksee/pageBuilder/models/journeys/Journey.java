@@ -44,7 +44,7 @@ public class Journey extends LookseeObject {
 		setOrderedIds(ordered_ids);
 		setStatus(status);
 		if(JourneyStatus.CANDIDATE.equals(status)) {
-			setCandidateKey(generateKey());
+			setCandidateKey(generateCandidateKey());
 		}
 		setKey(generateKey());
 	}
@@ -57,7 +57,7 @@ public class Journey extends LookseeObject {
 		setOrderedIds(ordered_ids);
 		setStatus(status);
 		if(JourneyStatus.CANDIDATE.equals(status)) {
-			setCandidateKey(generateKey());
+			setCandidateKey(generateCandidateKey());
 		}
 		setKey(generateKey());
 	}
@@ -70,6 +70,19 @@ public class Journey extends LookseeObject {
 		return "journey"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(StringUtils.join(orderedIds, "|"));
 	}
 
+	
+	/**
+	 * generates a key using key values of each step in order
+	 */
+	public String generateCandidateKey() {
+		List<String> ordered_keys = getSteps().stream()
+								  		.map(step -> step.getKey())
+								  		.filter(id -> id != null)
+								  		.collect(Collectors.toList());
+		
+		return "journey"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(StringUtils.join(ordered_keys, "|"));
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
