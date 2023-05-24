@@ -83,11 +83,11 @@ public class PageStateService {
 		assert page_key != null;
 		assert !page_key.isEmpty();
 		
-		return page_state_repo.getElementStates(page_key);
+		return element_state_repo.getElementStates(page_key);
 	}
 	
 	public List<ElementState> getElementStates(long page_state_id){
-		return page_state_repo.getElementStates(page_state_id);
+		return element_state_repo.getElementStates(page_state_id);
 	}
 	
 	public List<ElementState> getLinkElementStates(long page_state_id){
@@ -132,7 +132,7 @@ public class PageStateService {
 	}
 
 	public List<ElementState> getVisibleLeafElements(String page_state_key) {
-		return page_state_repo.getVisibleLeafElements(page_state_key);
+		return element_state_repo.getVisibleLeafElements(page_state_key);
 	}
 
 	public PageState findByUrl(String url) {
@@ -157,8 +157,8 @@ public class PageStateService {
 		return page_state_repo.addElement(page_id, element_id) != null;
 	}
 
-	private Optional<ElementState> getElementState(long page_id, long element_id) {
-		return page_state_repo.getElementState(page_id, element_id);
+	public Optional<ElementState> getElementState(long page_id, long element_id) {
+		return element_state_repo.getElementState(page_id, element_id);
 	}
 
 	/**

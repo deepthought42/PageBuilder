@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Node;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.looksee.pageBuilder.models.enums.ElementClassification;
 
 
@@ -21,6 +23,9 @@ import com.looksee.pageBuilder.models.enums.ElementClassification;
  *  may be a Parent and/or child of another ElementState. This heirarchy is not
  *  maintained by ElementState though. 
  */
+@JsonSubTypes({ 
+  @Type(value = ImageElementState.class, name = "ImageElementState"), 
+})
 @Node
 public class ElementState extends LookseeObject implements Comparable<ElementState> {
 	@SuppressWarnings("unused")
