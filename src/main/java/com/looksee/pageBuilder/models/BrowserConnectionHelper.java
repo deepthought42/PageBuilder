@@ -21,8 +21,10 @@ public class BrowserConnectionHelper {
 	//private static final String[] CHROME_DISCOVERY_HUB_IP_ADDRESS = {"35.239.77.58:4444", "23.251.149.198:4444"};
 	//private static final String[] FIREFOX_DISCOVERY_HUB_IP_ADDRESS = {"35.239.245.6:4444", "173.255.118.118:4444"};
 
-	private static final String[] RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS = {"34.121.191.15:4444"};
-    
+	//private static final String[] RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS = {"34.121.191.15:4444"};
+	private static final String[] RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS = {"selenium-chrome-uydih6tjpa-uc.a.run.app"};
+
+	
 	/*
 	private static final String[] RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS = {"35.224.152.230:4444",
     																	   "34.121.191.15:4444",
@@ -50,7 +52,9 @@ public class BrowserConnectionHelper {
 	 * @throws MalformedURLException
 	 */
     @Retry(name="webdriver")
-	public static Browser getConnection(BrowserType browser, BrowserEnvironment environment) throws MalformedURLException{
+	public static Browser getConnection(BrowserType browser, BrowserEnvironment environment)
+			throws MalformedURLException
+    {
 		assert browser != null;
 		assert environment != null;
 		
@@ -60,13 +64,16 @@ public class BrowserConnectionHelper {
 		}
 		else if(environment.equals(BrowserEnvironment.DISCOVERY) && "chrome".equalsIgnoreCase(browser.toString())){
 			Random randomGenerator = new Random();
+			log.warn("selenium hub address 1  =  " +RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[0]);
 			int randomInt = randomGenerator.nextInt(RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS.length);
-			hub_url = new URL( "http://"+RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[randomInt]+"/wd/hub");
+			hub_url = new URL( "https://"+RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[randomInt]+"/wd/hub");
 		}
 		else if(environment.equals(BrowserEnvironment.DISCOVERY) && "firefox".equalsIgnoreCase(browser.toString())){
 			Random randomGenerator = new Random();
+			log.warn("selenium hub address 2  =  " +RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[0]);
+
 			int randomInt = randomGenerator.nextInt(RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS.length);
-			hub_url = new URL( "http://"+RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[randomInt]+"/wd/hub");
+			hub_url = new URL( "https://"+RESOURCE_HEAVY_REQUEST_HUB_IP_ADDRESS[randomInt]+"/wd/hub");
 		}
 
 		return new Browser(browser.toString(), hub_url);

@@ -1,6 +1,7 @@
 package com.looksee.pageBuilder.models.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -71,4 +72,18 @@ public interface ElementStateRepository extends Neo4jRepository<ElementState, Lo
 	
 	@Query("MATCH (p:PageState)-[:HAS]->(e:ElementState{name:'a'}) WHERE id(p)=$page_state_id RETURN DISTINCT e")
 	public List<ElementState> getLinkElementStates(@Param("page_state_id") long page_state_id);
+	
+	@Query("MATCH (p:PageState)-[:HAS]->(element:ElementState) WHERE id(p)=$page_id AND id(element)=$element_id RETURN element ORDER BY p.created_at DESC LIMIT 1")
+	public Optional<ElementState> getElementState(@Param("page_id") long page_id, @Param("element_id") long element_id);
+
+	@Query("MATCH (p:PageState{key:$page_key})-[:HAS]->(e:ElementState) RETURN DISTINCT e")
+	public List<ElementState> getElementStates(@Param("page_key") String key);
+	
+	@Query("MATCH (p:PageState)-[:HAS]->(e:ElementState) WHERE id(p)=$page_state_id RETURN DISTINCT e")
+	public List<ElementState> getElementStates(@Param("page_state_id") long page_state_id);
+
+	@Query("MATCH (p:PageState{key:$page_state_key})-[:HAS]->(e:ElementState{classification:'LEAF'}) where e.visible=true RETURN e")
+	public List<ElementState> getVisibleLeafElements(@Param("page_state_key") String page_state_key);
+
+	
 }

@@ -35,6 +35,7 @@ import com.looksee.pageBuilder.mapper.Body;
 import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
+import com.looksee.pageBuilder.models.enums.BrowserEnvironment;
 import com.looksee.pageBuilder.models.enums.BrowserType;
 import com.looksee.pageBuilder.models.enums.JourneyStatus;
 import com.looksee.pageBuilder.models.enums.PathStatus;
@@ -110,7 +111,8 @@ public class AuditController {
 	    
 		Browser browser = null;
 
-	    try {						
+	    try {			
+	    	boolean is_secure = BrowserUtils.checkIfSecure(url);
 			int http_status = BrowserUtils.getHttpStatus(url);
 
 			//usually code 301 is returned which is a redirect, which is usually transferring to https
@@ -129,10 +131,12 @@ public class AuditController {
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
 			else {
+				
 				//update audit record with progress
-				page_state = browser_service.buildPageState(url, browser); 
-				//page_state = page_state_service.save(page_state);
-				log.warn("saved page state :: "+page_state.getId());
+				browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
+
+				page_state = browser_service.buildPageState(url, browser, is_secure, http_status);
+				browser.close();
 			}
 		
 			log.warn("Extracting element states...");
@@ -145,7 +149,8 @@ public class AuditController {
 			List<ElementState> element_states = browser_service.buildPageElements(	page_state, 
 																					xpaths,
 																					page_url,
-																					page_screenshot.getHeight());
+																					page_screenshot.getHeight(),
+																					browser);
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 			
@@ -160,7 +165,12 @@ public class AuditController {
 			page_state_service.addAllElements(page_state.getId(), element_ids);
 */
 			page_state.setElements(element_states);
+			log.warn("page state elements BEFORE save = "+page_state.getElements().size());
 			page_state = page_state_service.save(page_state);
+			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
+
+			//page_state.setElements(element_state_service.findByPageState(page_state.getId()));
+			log.warn("page element states = "+page_state.getElements().size());
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
 			log.warn("page state id :: " + page_state.getId());
@@ -235,7 +245,7 @@ public class AuditController {
 			pubSubErrorPublisherImpl.publish(element_extraction_str);
 		    
 			log.error("An exception occurred that bubbled up to the page state builder : "+e.getMessage());
-			//e.printStackTrace();
+			e.printStackTrace();
 			
 			return new ResponseEntity<String>("Error building page state for url "+url_msg.getUrl(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

@@ -63,7 +63,6 @@ import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.enums.TemplateType;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ImageUtils;
-import com.looksee.utils.TimingUtils;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import us.codecraft.xsoup.Xsoup;
@@ -302,78 +301,28 @@ public class BrowserService {
 	 * 
 	 * @param url
 	 * @param browser TODO
+	 * @param isSecure TODO
+	 * @param httpStatus TODO
 	 * @return
 	 * @throws IOException 
 	 * @throws XPathExpressionException 
 	 * @throws Exception
 	 */
 	//@Retry(name = "webdriver")
-	public PageState buildPageState(URL url, Browser browser) throws Exception {
+	public PageState buildPageState(URL url, Browser browser, boolean isSecure, int httpStatus) throws Exception {
 		assert url != null;
 		
-		int http_status = BrowserUtils.getHttpStatus(url);
-		//usually code 301 is returned which is a redirect, which is usually transferring to https
-		if(http_status == 404 || http_status == 408) {
-			return null;
-		}
-		
-		PageState page_state = null;
-		/*
-		boolean complete = false;
-		int cnt = 0;
-		do {
-		*/
-			log.debug("getting browser connection... ");
-			//Browser browser = null;
-			//try {
-				browser = getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
-				browser.navigateTo(url.toString());
-
-				page_state = performBuildPageProcess( browser);
-				//complete = true;
-				//cnt=Integer.MAX_VALUE;
-			/*
-			}
-			catch(MalformedURLException e) {
-				break;
-			}
-			catch(IOException e) {
-				log.warn("IOException occurred while building page state");
-				e.printStackTrace();
-			}
-			catch(ServiceUnavailableException e) {
-				log.warn("Service unavailable exception occurred while building page state");
-				//e.printStackTrace();
-			}
-			catch(WebDriverException | GridException e) {								
-				log.warn("Selenium Exception occurred while building page state :: "+url);
-			}
-			catch(NullPointerException e) {
-				log.warn("Null Pointer Exception occurred while building page state");
-				e.printStackTrace();
-			}
-			catch(Exception e) {
-				log.warn("Exception occurred while building page state");
-				e.printStackTrace();
-			}
-			finally {
-				if(browser != null) {
-					browser.close();
-				}
-			}
-			*/
-		//	cnt++;
-		//}while(!complete && cnt < 50);
-		
-		return page_state;
+		browser.navigateTo(url.toString());
+		return performBuildPageProcess( browser, isSecure, httpStatus);
 	}
 	
 	/**
 	 * Navigates to a url, checks that the service is available, then removes drift 
 	 * 	chat client from page if it exists. Finally it builds a {@link PageState}
-	 * 
-	 * @param url
 	 * @param browser TODO
+	 * @param isSecure TODO
+	 * @param httpStatus TODO
+	 * @param url
 	 * 
 	 * @pre url != null;
 	 * @pre browser != null
@@ -386,7 +335,12 @@ public class BrowserService {
 	 * @throws IOException 
 	 * @throws GridException 
 	 */
-	public PageState performBuildPageProcess(Browser browser) throws WebDriverException, IOException, NullPointerException
+	public PageState performBuildPageProcess(Browser browser, 
+											 boolean isSecure, 
+											 int httpStatus) 
+													 throws WebDriverException, 
+													 		IOException, 
+													 		NullPointerException
 	{
 		assert browser != null;
 		
@@ -396,11 +350,13 @@ public class BrowserService {
 		}
 		browser.removeDriftChat();
 		
-		return buildPageState(browser);
+		return buildPageState(browser, isSecure, httpStatus);
 	}
 
 	/**
 	 *Constructs a page object that contains all child elements that are considered to be potentially expandable.
+	 * @param isSecure TODO
+	 * @param httpStatus TODO
 	 * @param url_after_loading TODO
 	 * @param title TODO
 	 * @return page {@linkplain PageState}
@@ -412,8 +368,14 @@ public class BrowserService {
 	 * 
 	 * @pre browser != null
 	 */
-	public PageState buildPageState( Browser browser ) throws WebDriverException, IOException, NullPointerException {
+	public PageState buildPageState( Browser browser, 
+									boolean isSecure, 
+									int httpStatus ) 
+											throws WebDriverException, 
+													IOException, 
+													NullPointerException {
 		assert browser != null;
+		
 		URL current_url = new URL(browser.getDriver().getCurrentUrl());
 		String url_without_protocol = BrowserUtils.getPageUrl(current_url.toString());
 		
@@ -425,9 +387,6 @@ public class BrowserService {
 			log.warn("BUILDING    ?#   PAGE STATE..."+current_url);
 		}
 
-		boolean is_secure = BrowserUtils.checkIfSecure(current_url);
-        int status_code = BrowserUtils.getHttpStatus(current_url);
-        log.warn("is secure = "+is_secure);
         //remove 3rd party chat apps such as drift, and ...(NB: fill in as more identified)
         //browser.removeDriftChat();
         
@@ -481,8 +440,8 @@ public class BrowserService {
 										full_page_screenshot.getHeight(), 
 										url_without_protocol,
 										title,
-										is_secure,
-										status_code, 
+										isSecure,
+										httpStatus, 
 										composite_url,
 										current_url.toString());
 
@@ -494,6 +453,7 @@ public class BrowserService {
 	 * @param xpaths TODO
 	 * @param url TODO
 	 * @param url
+	 * @param browser TODO
 	 * @param height TODO
 	 * @param audit_record TODO
 	 * @return
@@ -502,8 +462,10 @@ public class BrowserService {
 	public List<ElementState> buildPageElements(PageState page_state, 
 												List<String> xpaths, 
 												URL url, 
-												int page_height
+												int page_height, 
+												Browser browser
 	) throws MalformedURLException {
+		assert browser != null;
 		assert page_state != null;
    				
 		List<ElementState> elements = new ArrayList<>();
@@ -513,9 +475,7 @@ public class BrowserService {
 		String page_url = sanitized_url.toString();
 		
 		int cnt = 0;
-		do {
-			Browser browser = null;
-			
+		do {			
 			try {
 				browser = getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 				browser.navigateTo(page_url);
@@ -526,17 +486,18 @@ public class BrowserService {
 				
 				//get ElementState List by asking multiple bots to build xpaths in parallel
 				//for each xpath then extract element state
-				elements = getDomElementStates(page_state, xpaths, browser, elements_mapped, sanitized_url, page_height);
+				elements = getDomElementStates(page_state, 
+											   xpaths, 
+											   browser, 
+											   elements_mapped, 
+											   sanitized_url, 
+											   page_height);
 				cnt = 11;
 				rendering_incomplete=false;
 			}
 			catch (NullPointerException e) {
 				log.warn("NPE thrown during element state extraction");
-				//e.printStackTrace();
-			}
-			catch(MalformedURLException e) {
-				log.warn("Unable to get browser connection to build page elements : "+page_url);
-				continue;
+				e.printStackTrace();
 			}
 			catch(FiveZeroThreeException e) {
 				log.warn("503 exception occurred while accessing "+page_url);
@@ -585,6 +546,7 @@ public class BrowserService {
 	
 	
 	@Retry(name="webdriver")
+	@Deprecated
 	private boolean openBrowserAndBuildElementStates(List<ElementState> elements,
 												  Map<String, ElementState> elements_mapped, 
 												  PageState page_state,
