@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import javax.imageio.ImageIO;
@@ -37,10 +37,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.grid.common.exception.GridException;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.ImmutableCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.OutputType;
@@ -53,7 +53,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.UnreachableBrowserException;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -73,6 +72,8 @@ import cz.vutbr.web.csskit.RuleFontFaceImpl;
 import cz.vutbr.web.csskit.RuleKeyframesImpl;
 import cz.vutbr.web.csskit.RuleMediaImpl;
 import cz.vutbr.web.domassign.StyleMap;
+import ru.yandex.qatools.ashot.AShot;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 
 /**
  * Handles the management of selenium browser instances and provides various methods for interacting with the browser 
@@ -131,12 +132,12 @@ public class Browser {
 		else if("internet_explorer".equals(browser)){
 			this.driver = openWithInternetExplorer(hub_node_url);
 		}
-		else if("safari".equals(browser)){
-			this.driver = openWithSafari(hub_node_url);
-		}
-		else if("opera".equals(browser)){
-			this.driver = openWithOpera(hub_node_url);
-		}
+		//else if("safari".equals(browser)){
+//			this.driver = openWithSafari(hub_node_url);
+	//	}
+		//else if("opera".equals(browser)){
+		//	this.driver = openWithOpera(hub_node_url);
+		//}
 		setYScrollOffset(0);
 		setXScrollOffset(0);
 		setViewportSize(getViewportSize(driver));
@@ -163,6 +164,7 @@ public class Browser {
 		}catch(Exception e) {
 			/*
 			e.printStackTrace();
+			
 			Alert alert = isAlertPresent();
 			if(alert != null){
 				log.debug("Alert was encountered during navigation page load!!!");
@@ -170,7 +172,7 @@ public class Browser {
 				
 				page_alert.performChoice(getDriver(), AlertChoice.DISMISS);
 			}
-			 */
+			*/
 		}
 	}
 
@@ -225,12 +227,18 @@ public class Browser {
 	 * @return firefox web driver
 	 * @throws MalformedURLException 
 	 */
-	public static WebDriver openWithFirefox(URL hub_node_url) throws MalformedURLException, UnreachableBrowserException, GridException{
+	public static WebDriver openWithFirefox(URL hub_node_url) 
+			throws MalformedURLException, UnreachableBrowserException 
+	{
+		/*
 		FirefoxOptions options = new FirefoxOptions();
 		options.addArguments("user-agent=QanairyBot");
+*/
+		//DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+		ImmutableCapabilities capabilities = new ImmutableCapabilities("browserName", "firefox");
 
 		//options.setHeadless(true);
-	    RemoteWebDriver driver = new RemoteWebDriver(hub_node_url, options);
+	    RemoteWebDriver driver = new RemoteWebDriver(hub_node_url, capabilities);
 		driver.manage().window().maximize();
 
 	    //driver.manage().window().setSize(new Dimension(1024, 768));
@@ -247,7 +255,9 @@ public class Browser {
 	 * @return Opera web driver
 	 * @throws MalformedURLException 
 	 */
-	public static WebDriver openWithOpera(URL hub_node_url) throws MalformedURLException, UnreachableBrowserException, GridException{
+	/*
+	public static WebDriver openWithOpera(URL hub_node_url) 
+			throws MalformedURLException, UnreachableBrowserException{
 	    DesiredCapabilities cap = DesiredCapabilities.opera();
 	    cap.setBrowserName("opera");
 		cap.setJavascriptEnabled(true);
@@ -258,6 +268,7 @@ public class Browser {
 	    
 		return driver;
 	}
+	*/
 	
 	/**
 	 * open new Safari browser window
@@ -265,7 +276,9 @@ public class Browser {
 	 * @param url
 	 * @return safari web driver
 	 */
-	public static WebDriver openWithSafari(URL hub_node_url) throws MalformedURLException, UnreachableBrowserException, GridException{
+	/*
+	public static WebDriver openWithSafari(URL hub_node_url) 
+			throws MalformedURLException, UnreachableBrowserException{
 	    DesiredCapabilities cap = DesiredCapabilities.safari();
 
 		RemoteWebDriver driver = new RemoteWebDriver(hub_node_url, cap);
@@ -273,6 +286,7 @@ public class Browser {
 
 		return driver;
 	}
+	*/
 	
 	/**
 	 * Opens internet explorer browser window
@@ -280,8 +294,10 @@ public class Browser {
 	 * @param url
 	 * @return internet explorer web driver
 	 */
-	public static WebDriver openWithInternetExplorer(URL hub_node_url) throws MalformedURLException, UnreachableBrowserException, GridException {
-	    DesiredCapabilities capabilities = DesiredCapabilities.internetExplorer();
+	public static WebDriver openWithInternetExplorer(URL hub_node_url) 
+								throws MalformedURLException, UnreachableBrowserException {
+	    //DesiredCapabilities capabilities = DesiredCapabilities.internetExplorer();
+		ImmutableCapabilities capabilities = new ImmutableCapabilities("browserName", "ie");
 
 		RemoteWebDriver driver = new RemoteWebDriver(hub_node_url, capabilities);
 		
@@ -300,11 +316,16 @@ public class Browser {
 					UnreachableBrowserException, 
 					WebDriverException
 	{
+		
 		ChromeOptions chrome_options = new ChromeOptions();
 		chrome_options.addArguments("user-agent=LookseeBot");
 		chrome_options.addArguments("window-size=1920,1080");
+		chrome_options.addArguments("--remote-allow-origins=*");
+
 
 		//options.setHeadless(true);
+
+		//ImmutableCapabilities capabilities = new ImmutableCapabilities("browserName", "chrome");
 
 		//cap.setCapability("video", "True"); // NOTE: "True" is a case sensitive string, not boolean.
 
@@ -324,7 +345,10 @@ public class Browser {
 		driver.manage().window().maximize();
 
 		//driver.manage().window().setSize(new Dimension(1024, 768));
-	    //driver.manage().timeouts().implicitlyWait(30L, TimeUnit.SECONDS);
+	    //driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5L));
+	    //driver.manage().timeouts().scriptTimeout(Duration.ofSeconds(2L));
+	    //driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30L));
+	    		
 	    //driver.manage().timeouts().pageLoadTimeout(30L, TimeUnit.SECONDS);
 		return driver;
 	}
@@ -361,7 +385,7 @@ public class Browser {
 	 * @return File png file of image
 	 * @throws IOException
 	 */
-	public BufferedImage getViewportScreenshot() throws IOException, GridException{
+	public BufferedImage getViewportScreenshot() throws IOException {
 		return ImageIO.read(((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE));
 	}
 	
@@ -374,17 +398,28 @@ public class Browser {
 	 * NOTE: The out put of this method is a screenshot that doesn't make any effort at removing duplicated sections
 	 * caused by things like floating elements sticky navigation bars
 	 */
-	public BufferedImage getFullPageScreenshot() throws IOException, GridException{
+	public BufferedImage getFullPageScreenshot() throws IOException {
 		return Shutterbug.shootPage(driver, Capture.FULL_SCROLL).getImage();
 	}
 	
+	public BufferedImage getFullPageScreenshotAshot() throws IOException {
+		ru.yandex.qatools.ashot.Screenshot screenshot = new AShot().shootingStrategy(ShootingStrategies.viewportPasting(1000)).takeScreenshot(driver);
+        return screenshot.getImage();
+	}
+	
+	public BufferedImage getFullPageScreenshotShutterbug() throws IOException {
+		//NOTE: best for CHROME
+	    return Shutterbug.shootPage(driver, Capture.FULL, true).getImage();
+	}
+	
+
 	/**
 	 * Gets image as a base 64 string
 	 * 
 	 * @return File png file of image
 	 * @throws IOException
 	 */
-	public BufferedImage getFullPageScreenshotStitched() throws IOException, GridException{
+	public BufferedImage getFullPageScreenshotStitched() throws IOException {
 		double percentage = 0.10;
 		
 		//scroll to top of page
@@ -1029,7 +1064,7 @@ public class Browser {
 	 * Waits for the document ready state to be complete, then observes page transition if it exists
 	 */
 	public void waitForPageToLoad() {
-		new WebDriverWait(driver, 15).until(
+		new WebDriverWait(driver, 30L).until(
 				webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState")
 					.equals("complete"));

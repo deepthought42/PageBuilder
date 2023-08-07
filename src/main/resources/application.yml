@@ -15,7 +15,6 @@ resilience4j.retry:
             waitDuration: 1s
             retryExceptions:
                 - org.openqa.selenium.WebDriverException
-                - org.openqa.grid.common.exception.GridException
                 - org.openqa.selenium.remote.UnreachableBrowserException
                 - org.openqa.selenium.NoSuchSessionException
                 - org.openqa.selenium.NoSuchElementException
@@ -54,7 +53,6 @@ resilience4j.retry:
             waitDuration: 2s
             retryExceptions:
                 - org.openqa.selenium.WebDriverException
-                - org.openqa.grid.common.exception.GridException
                 - org.openqa.selenium.remote.UnreachableBrowserException
                 - org.openqa.selenium.NoSuchSessionException
                 - java.io.IOException

@@ -2,6 +2,8 @@ package browser;
 
 import static org.junit.Assert.*;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,8 +11,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
 import org.junit.Test;
-import org.openqa.grid.common.exception.GridException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -55,11 +58,12 @@ public class BrowserTest {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void verifyGenerateParentXpath(){
+		System.out.println("testing 123");
 		try{
 			Browser browser = BrowserConnectionHelper.getConnection(BrowserType.FIREFOX, BrowserEnvironment.DISCOVERY);
-			browser.navigateTo("https://staging-marketing.qanairy.com");
+			browser.navigateTo("https://look-see.com");
 			WebElement element = browser.getDriver().findElement(By.xpath("//li//a[contains(@href,'features.html')]/../../.."));
 			Map<String, String> attributes = browser.extractAttributes(element);
 
@@ -70,7 +74,7 @@ public class BrowserTest {
 		//	Assert.assertTrue("concat('This is a embedded ', '\"', 'path', '\"', '')".equals(clean_src));
 		}
 		catch(Exception e){
-			
+			e.printStackTrace();
 		}
 	}
 	
@@ -108,8 +112,6 @@ public class BrowserTest {
 				assertTrue(attributes.containsKey("style"));
 				assertEquals(1, attributes.get("style").length());
 				break;
-			}catch(GridException e){
-				
 			}
 			catch(WebDriverException e){
 				
@@ -134,5 +136,24 @@ public class BrowserTest {
 		
 		System.err.println("url :: "+url.getHost());
 		
+	}
+	
+	//NOTE: This is used for manual testing to generate a full page screenshot.
+	//@Test
+	public void verifyFullPageScreenshot(){
+		System.out.println("testing 123");
+		try{
+			Browser browser = BrowserConnectionHelper.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
+			browser.navigateTo("https://medium.com");
+			
+			BufferedImage scrn2 = browser.getFullPageScreenshotShutterbug();
+			ImageIO.write(scrn2, "png", new File("/home/deepthought/fullimage-shutterbug.png"));
+
+			//log.info("clean src: " +clean_src);
+		//	Assert.assertTrue("concat('This is a embedded ', '\"', 'path', '\"', '')".equals(clean_src));
+		}
+		catch(Exception e){
+			//e.printStackTrace();
+		}
 	}
 }
