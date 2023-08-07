@@ -31,7 +31,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.grid.common.exception.GridException;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriverException;
@@ -1036,6 +1035,7 @@ public class BrowserUtils {
 			Browser browser = null;
 			try {
 				browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
+				TimingUtils.pauseThread(5L);
 				browser.navigateTo(sanitized_url.toString());
 				
 				sanitized_url = new URL(browser.getDriver().getCurrentUrl());
@@ -1047,7 +1047,7 @@ public class BrowserUtils {
 				log.warn("Malformed URL exception occurred for  "+sanitized_url);
 				break;
 			}
-			catch(WebDriverException | GridException e) {								
+			catch(WebDriverException e) {								
 				log.warn("failed to obtain page source during crawl of :: "+sanitized_url);
 			}
 			finally {

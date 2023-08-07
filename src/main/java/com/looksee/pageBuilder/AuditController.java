@@ -54,6 +54,7 @@ import com.looksee.pageBuilder.services.StepService;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ElementStateUtils;
 import com.looksee.utils.ImageUtils;
+import com.looksee.utils.TimingUtils;
 
 
 /**
@@ -130,27 +131,24 @@ public class AuditController {
 				
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
-			else {
 				
-				//update audit record with progress
-				browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
-
-				page_state = browser_service.buildPageState(url, browser, is_secure, http_status);
-				browser.close();
-			}
+			//update audit record with progress
+			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
+			page_state = browser_service.buildPageState(url, browser, is_secure, http_status);
+			//browser.close();
 		
 			log.warn("Extracting element states...");
 			URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
 			BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
+			/*
 			URL page_url = new URL(BrowserUtils.sanitizeUrl(page_state.getUrl(),
 															page_state.isSecured()));
-			
+			*/
 			List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
-			List<ElementState> element_states = browser_service.buildPageElements(	page_state, 
-																					xpaths,
-																					page_url,
-																					page_screenshot.getHeight(),
-																					browser);
+			List<ElementState> element_states = browser_service.buildPageElementsWithoutNavigation(	page_state, 
+																									xpaths,
+																									page_screenshot.getHeight(),
+																									browser);
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 			
@@ -167,9 +165,9 @@ public class AuditController {
 			page_state.setElements(element_states);
 			log.warn("page state elements BEFORE save = "+page_state.getElements().size());
 			page_state = page_state_service.save(page_state);
-			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
+			//page_state.setElements(page_state_service.getElementStates(page_state.getId()));
 
-			//page_state.setElements(element_state_service.findByPageState(page_state.getId()));
+			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
 			log.warn("page element states = "+page_state.getElements().size());
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
