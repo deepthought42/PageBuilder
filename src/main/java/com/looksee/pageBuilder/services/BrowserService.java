@@ -646,7 +646,8 @@ public class BrowserService {
 				//check if element is visible in pane and if not then continue to next element xpath
 				if( !web_element.isDisplayed()
 						|| !hasWidthAndHeight(element_size)
-						|| doesElementHaveNegativePosition(element_location)) {
+						|| doesElementHaveNegativePosition(element_location)
+						|| (element_location.getY() >= page_height || element_size.getHeight() >= page_height)) {
 					continue;
 				}
 				
@@ -842,6 +843,7 @@ public class BrowserService {
 				}
 				
 				//filter all elements that have dimensions that are within another element and have a lower z-index
+				/*TODO : ADD IN LATER
 				for(ElementState element1: visited_elements) {
 					if(filtered_elements.contains(element1)) {
 						continue;
@@ -881,6 +883,7 @@ public class BrowserService {
 						overlapped_elements.put(element1.getKey(), Boolean.TRUE);
 					}
 				}
+				*/
 			}
 			catch(NoSuchElementException e) {
 				log.warn("No such element found :: "+xpath+"       ;;    on page : "+page_state.getUrl());

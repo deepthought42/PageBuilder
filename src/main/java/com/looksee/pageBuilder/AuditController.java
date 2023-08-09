@@ -109,7 +109,6 @@ public class AuditController {
 		
 	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 	    PageState page_state = null;
-	    
 		Browser browser = null;
 
 	    try {			
