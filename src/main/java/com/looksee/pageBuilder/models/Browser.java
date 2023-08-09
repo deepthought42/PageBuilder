@@ -409,7 +409,7 @@ public class Browser {
 	
 	public BufferedImage getFullPageScreenshotShutterbug() throws IOException {
 		//NOTE: best for CHROME
-	    return Shutterbug.shootPage(driver, Capture.FULL, true).getImage();
+	    return Shutterbug.shootPage(driver, Capture.FULL, 2, true).getImage();
 	}
 	
 
@@ -523,20 +523,6 @@ public class Browser {
 	 * @return
 	 * @throws IOException
 	 */
-	@Deprecated
-	public BufferedImage getElementScreenshot(com.looksee.pageBuilder.models.Element element) throws IOException{
-		//calculate element position within screen
-		WebElement web_element = driver.findElement(By.xpath(element.getXpath()));
-		return Shutterbug.shootElementVerticallyCentered(driver, web_element).getImage();
-	}
-	
-	/**
-	 * 
-	 * @param screenshot
-	 * @param elem
-	 * @return
-	 * @throws IOException
-	 */
 	public BufferedImage getElementScreenshot(WebElement element) throws Exception{
 		//log.warn("Fullpage width and height :: " + this.getFullPageScreenshot().getWidth() + " , " + this.getFullPageScreenshot().getHeight());
 
@@ -553,6 +539,20 @@ public class Browser {
 	 * @throws IOException
 	 */
 	public static BufferedImage getElementScreenshot(ElementState element_state, BufferedImage page_screenshot, Browser browser) throws IOException{
+		int width = element_state.getWidth();
+		int height = element_state.getHeight();
+		
+		if( (element_state.getXLocation() + element_state.getWidth()) > page_screenshot.getWidth() ) {
+			width = page_screenshot.getWidth() - element_state.getXLocation()-1;
+		}
+		
+		if( (element_state.getYLocation() + element_state.getHeight()) > page_screenshot.getHeight() ) {
+			height = page_screenshot.getHeight() - element_state.getYLocation()-1;
+		}
+		
+		return page_screenshot.getSubimage(element_state.getXLocation(), element_state.getYLocation(), width, height);
+		
+/*ORIGINAL CODE		
 		//calculate element position within screen
 		int point_x = element_state.getXLocation()+5;
 		int point_y = element_state.getYLocation();
@@ -563,6 +563,7 @@ public class Browser {
 		}
 		
 		return page_screenshot.getSubimage(point_x, point_y, width, height);
+		*/
 	}
 
 	
@@ -914,6 +915,7 @@ public class Browser {
 		this.xScrollOffset = x_scroll_offset;
 	}
 	
+	@Deprecated
 	public void scrollToElement(String xpath, WebElement elem) 
     {
 		Point offsets = elem.getLocation();
@@ -921,14 +923,19 @@ public class Browser {
 		
 		if(xpath.contains("nav") || xpath.startsWith("//body/header")) {
 			scrollToTopOfPage();
+			this.setXScrollOffset(0);
+			this.setYScrollOffset(0);
 			return;
 		}
+		
 		while(offsets_y != offsets.getY()) {
 			offsets_y = offsets.getY();
 			scrollDownFull();
 
 			offsets = elem.getLocation();
 		}
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
     }
 	
 	public void scrollToElement(com.looksee.pageBuilder.models.Element element) 
@@ -939,6 +946,15 @@ public class Browser {
 		this.setXScrollOffset(offsets.getX());
 		this.setYScrollOffset(offsets.getY());
     }
+	
+	public void scrollToElement(WebElement element) 
+    { 
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: \"center\"});", element);
+		Point offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
+    }
+	
 	
 	public void removeElement(String class_name) {
 		JavascriptExecutor js;

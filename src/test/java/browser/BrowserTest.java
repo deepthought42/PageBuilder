@@ -87,7 +87,7 @@ public class BrowserTest {
 		String xpath = "//button";
 		WebElement element = browser.getDriver().findElement(By.xpath(xpath));
 		
-		browser.scrollToElement(xpath, element);
+		browser.scrollToElement(element);
 		
 		assertEquals(0, browser.getXScrollOffset());
 		assertEquals(553, browser.getYScrollOffset());
