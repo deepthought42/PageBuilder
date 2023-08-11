@@ -63,6 +63,7 @@ import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.enums.TemplateType;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ImageUtils;
+import com.looksee.utils.TimingUtils;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import us.codecraft.xsoup.Xsoup;
@@ -538,9 +539,7 @@ public class BrowserService {
 		//boolean rendering_incomplete = true;
 		URL sanitized_url = new URL(BrowserUtils.sanitizeUserUrl( page_state.getUrl() ));
 		
-		elements = getDomElementStates(page_state, xpaths, browser, sanitized_url, page_height);
-
-		return elements;
+		return getDomElementStates(page_state, xpaths, browser, sanitized_url, page_height);
 	}
 	
 	
@@ -625,7 +624,9 @@ public class BrowserService {
 		
 		Document html_doc = Jsoup.parse(body_src);
 		String host = url.getHost();
-				
+		//scroll to bottom of page to force any animated or non visible elements to be made visible
+		browser.scrollToBottomOfPage();
+		TimingUtils.pauseThread(1000L);
 		for(String xpath : xpaths) {
 			try {
 				WebElement web_element = browser.findElement(xpath);
@@ -634,12 +635,7 @@ public class BrowserService {
 				}
 				Dimension element_size = web_element.getSize();
 				Point element_location = web_element.getLocation();
-				
-				/*
-				if(element_location.getY() >= page_height || element_size.getHeight() >= page_height) {
-					continue;
-				}
-				*/
+
 				//check if element is visible in pane and if not then continue to next element xpath
 				if( !web_element.isDisplayed()
 						|| !hasWidthAndHeight(element_size)
@@ -648,8 +644,8 @@ public class BrowserService {
 					continue;
 				}
 				
-				
 				browser.scrollToElement(web_element);
+				
 				String css_selector = generateCssSelectorFromXpath(xpath);
 				String element_screenshot_url = "";
 				BufferedImage element_screenshot = null;
@@ -714,57 +710,6 @@ public class BrowserService {
 						e1.printStackTrace();
 					}
 				}
-
-				/*
-				try {
-						
-					//extract element screenshot from full page screenshot
-					long screenshot_extract_start = System.currentTimeMillis();
-
-					//element_screenshot = browser.getElementScreenshot(web_element);
-					TakesScreenshot scrShot = ((TakesScreenshot)web_element);
-					File img_file = scrShot.getScreenshotAs(OutputType.FILE);
-					element_screenshot = ImageIO.read( img_file ); 
-					String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
-
-					
-					log.warn("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
-
-					element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
-					element_screenshot.flush();
-
-					//element_screenshot.getGraphics().dispose();
-				}
-				catch( Exception e) {
-					//do nothing
-					log.warn("element height :: "+element_size.getHeight());
-					log.warn("Element Y location ::  "+ element_location.getY());
-					log.warn("element width :: "+element_size.getWidth());
-					log.warn("Element X location ::  "+ element_location.getX());
-					log.warn("Excepton occurred while extracting screenshot .... "+e.getLocalizedMessage());
-					try {
-						long child_start = System.currentTimeMillis();
-						BufferedImage full_page_screenshot = ImageIO.read(new URL(page_state.getFullPageScreenshotUrlComposite()));
-						int width = element_size.getWidth();
-						int height = element_size.getHeight();
-						
-						if( (element_location.getX() + element_size.getWidth()) > full_page_screenshot.getWidth() ) {
-							width = full_page_screenshot.getWidth() - element_location.getX()-1;
-						}
-						
-						if( (element_location.getY() + element_size.getHeight()) > full_page_screenshot.getHeight() ) {
-							height = full_page_screenshot.getHeight() - element_location.getY()-1;
-						}
-						
-						element_screenshot = full_page_screenshot.getSubimage(element_location.getX(), element_location.getY(), width, height);
-						element_screenshot.flush();
-						log.warn("DONE extracting ELEMENT screenshot manually from full page = "+(System.currentTimeMillis()-child_start));
-					}
-					catch(Exception e1){
-						e1.printStackTrace();
-					}
-				}
-				*/
 				
 				
 				Map<String, String> rendered_css_props = Browser.loadCssProperties(web_element, browser.getDriver());
@@ -897,7 +842,7 @@ public class BrowserService {
 				//e.printStackTrace();
 			}
 		}
-		return filtered_elements;
+		return visited_elements;
 	}
 
 	private List<String> getChildElements(String xpath, List<String> xpaths) {
