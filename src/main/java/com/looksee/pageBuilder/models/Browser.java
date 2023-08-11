@@ -407,7 +407,7 @@ public class Browser {
 	
 	public BufferedImage getFullPageScreenshotShutterbug() throws IOException {
 		//NOTE: best for CHROME
-	    return Shutterbug.shootPage(driver, Capture.FULL, 2, true).getImage();
+	    return Shutterbug.shootPage(driver, Capture.FULL, 1000, true).getImage();
 	}
 	
 
@@ -913,7 +913,6 @@ public class Browser {
 		this.xScrollOffset = x_scroll_offset;
 	}
 	
-	@Deprecated
 	public void scrollToElement(String xpath, WebElement elem) 
     {
 		Point offsets = elem.getLocation();
@@ -932,27 +931,36 @@ public class Browser {
 
 			offsets = elem.getLocation();
 		}
+
 		this.setXScrollOffset(offsets.getX());
 		this.setYScrollOffset(offsets.getY());
     }
 	
-	public void scrollToElement(com.looksee.pageBuilder.models.Element element) 
-    { 
-		WebElement elem = driver.findElement(By.xpath(element.getXpath()));
-		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: \"center\"});", elem);
-		Point offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
-    }
-	
+	/**
+	 * 
+	 * @param element
+	 */
 	public void scrollToElement(WebElement element) 
     { 
-		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: \"center\"});", element);
 		Point offsets = getViewportScrollOffset();
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", element);
+		offsets = getViewportScrollOffset();
 		this.setXScrollOffset(offsets.getX());
 		this.setYScrollOffset(offsets.getY());
     }
 	
+	/**
+	 * 
+	 * @param element
+	 */
+	public void scrollToYCoordinate(WebElement element) 
+    { 
+		Point offsets = getViewportScrollOffset();
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollTo(0, "+element.getLocation().getY()+");", element);
+		offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
+    }
 	
 	public void removeElement(String class_name) {
 		JavascriptExecutor js;
