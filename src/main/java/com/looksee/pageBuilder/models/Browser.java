@@ -943,7 +943,7 @@ public class Browser {
 	public void scrollToElement(WebElement element) 
     { 
 		Point offsets = getViewportScrollOffset();
-		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", element);
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
 		offsets = getViewportScrollOffset();
 		this.setXScrollOffset(offsets.getX());
 		this.setYScrollOffset(offsets.getY());

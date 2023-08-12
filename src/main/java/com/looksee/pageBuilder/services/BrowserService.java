@@ -617,8 +617,6 @@ public class BrowserService {
 		assert page_state != null;
 		
 		List<ElementState> visited_elements = new ArrayList<>();
-		List<ElementState> filtered_elements = new ArrayList<>();
-		Map<String, Boolean> overlapped_elements = new HashMap<>();
 
 		String body_src = extractBody(page_state.getSrc());
 		
@@ -626,7 +624,7 @@ public class BrowserService {
 		String host = url.getHost();
 		//scroll to bottom of page to force any animated or non visible elements to be made visible
 		browser.scrollToBottomOfPage();
-		TimingUtils.pauseThread(1000L);
+
 		for(String xpath : xpaths) {
 			try {
 				WebElement web_element = browser.findElement(xpath);
@@ -643,8 +641,15 @@ public class BrowserService {
 						|| (element_location.getY() >= page_height || element_size.getHeight() >= page_height)) {
 					continue;
 				}
-				
+				Point offset = browser.getViewportScrollOffset();
+				log.warn("viewport offset BEFORE scroll = "+offset);
+				log.warn("browser offset BEFORE scroll = "+browser.getXScrollOffset()+ " , "+browser.getYScrollOffset());				
 				browser.scrollToElement(web_element);
+				offset = browser.getViewportScrollOffset();
+				log.warn("viewport offset AFTER scrolling = "+offset);
+				log.warn("browser offset AFTER scroll = "+browser.getXScrollOffset()+ " , "+browser.getYScrollOffset());				
+
+				
 				
 				String css_selector = generateCssSelectorFromXpath(xpath);
 				String element_screenshot_url = "";
