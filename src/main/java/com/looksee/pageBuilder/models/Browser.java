@@ -417,6 +417,7 @@ public class Browser {
 	 * @return File png file of image
 	 * @throws IOException
 	 */
+	@Deprecated
 	public BufferedImage getFullPageScreenshotStitched() throws IOException {
 		double percentage = 0.10;
 		
@@ -536,7 +537,8 @@ public class Browser {
 	 * @return
 	 * @throws IOException
 	 */
-	public static BufferedImage getElementScreenshot(ElementState element_state, BufferedImage page_screenshot, Browser browser) throws IOException{
+	public static BufferedImage getElementScreenshot(ElementState element_state, 
+													BufferedImage page_screenshot) throws IOException{
 		int width = element_state.getWidth();
 		int height = element_state.getHeight();
 		
@@ -562,6 +564,30 @@ public class Browser {
 		
 		return page_screenshot.getSubimage(point_x, point_y, width, height);
 		*/
+	}
+	
+	/**
+	 * 
+	 * @param screenshot
+	 * @param elem
+	 * @return
+	 * @throws IOException
+	 */
+	public static BufferedImage getElementScreenshot(Point element_location,
+													 Dimension element_size,
+													 BufferedImage page_screenshot) throws IOException{
+		int width = element_size.getWidth();
+		int height = element_size.getHeight();
+		
+		if( (element_location.getX() + element_size.getWidth()) > page_screenshot.getWidth() ) {
+			width = page_screenshot.getWidth() - element_location.getX()-1;
+		}
+		
+		if( (element_location.getY() + element_size.getHeight()) > page_screenshot.getHeight() ) {
+			height = page_screenshot.getHeight() - element_location.getY()-1;
+		}
+		
+		return page_screenshot.getSubimage(element_location.getX(), element_location.getY(), width, height);
 	}
 
 	
@@ -1051,6 +1077,9 @@ public class Browser {
 		else {
 			x_offset = Integer.parseInt(objx.toString());
 		}
+		
+		this.setXScrollOffset(x_offset);
+		this.setYScrollOffset(y_offset);
 		
 		return new Point(x_offset, y_offset);
 	}
