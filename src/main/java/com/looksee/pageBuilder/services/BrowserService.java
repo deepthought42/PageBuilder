@@ -63,7 +63,6 @@ import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.enums.TemplateType;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ImageUtils;
-import com.looksee.utils.TimingUtils;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import us.codecraft.xsoup.Xsoup;
@@ -458,61 +457,33 @@ public class BrowserService {
 	 * @param height TODO
 	 * @param audit_record TODO
 	 * @return
-	 * @throws MalformedURLException 
+	 * @throws IOException 
 	 */
 	public List<ElementState> buildPageElements(PageState page_state, 
 												List<String> xpaths, 
 												URL url, 
 												int page_height, 
 												Browser browser
-	) throws MalformedURLException {
+	) throws IOException {
 		assert browser != null;
 		assert page_state != null;
    				
 		List<ElementState> elements = new ArrayList<>();
-		Map<String, ElementState> elements_mapped = new HashMap<>();
-		boolean rendering_incomplete = true;
 		URL sanitized_url = new URL(BrowserUtils.sanitizeUserUrl( page_state.getUrl() ));
-		String page_url = sanitized_url.toString();
-		
-		//int cnt = 0;
-		//do {			
-			try {
-				//browser = getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
-				/*
-				browser.navigateTo(page_url);
-				if(browser.is503Error()) {
-					throw new FiveZeroThreeException("503 Error encountered. Starting over..");
-				}
-				browser.removeDriftChat();
-				*/
-				//get ElementState List by asking multiple bots to build xpaths in parallel
-				//for each xpath then extract element state
-				elements = getDomElementStates(page_state, 
-											   xpaths, 
-											   browser, 
-											   sanitized_url, 
-											   page_height);
-				//cnt = 11;
-				rendering_incomplete=false;
-			}
-			catch (NullPointerException e) {
-				log.warn("NPE thrown during element state extraction");
-				e.printStackTrace();
-			}
-			//catch(WebDriverException e) {
-			//	log.warn("Webdriver exception occurred ... "+page_url);
-				//e.printStackTrace();
-			//}	
-			/*
-			finally {
-				if(browser != null) {
-					browser.close();
-				}
-			}
-			*/
-			//cnt++;
-		//}while(rendering_incomplete && cnt < 10);
+
+		try {			
+			//get ElementState List by asking multiple bots to build xpaths in parallel
+			//for each xpath then extract element state
+			elements = getDomElementStates(page_state, 
+										   xpaths, 
+										   browser, 
+										   sanitized_url, 
+										   page_height);
+		}
+		catch (NullPointerException e) {
+			log.warn("NPE thrown during element state extraction");
+			e.printStackTrace();
+		}
 
 		return elements;
 	}
@@ -525,13 +496,13 @@ public class BrowserService {
 	 * @param height TODO
 	 * @param audit_record TODO
 	 * @return
-	 * @throws MalformedURLException 
+	 * @throws IOException 
 	 */
 	public List<ElementState> buildPageElementsWithoutNavigation(PageState page_state, 
 																 List<String> xpaths, 
 															 	 int page_height, 
 															 	 Browser browser
-	) throws MalformedURLException {
+	) throws IOException {
 		assert page_state != null;
    				
 		List<ElementState> elements = new ArrayList<>();
@@ -551,7 +522,7 @@ public class BrowserService {
 												  List<String> xpaths,
 												  long audit_id,
 												  int page_height
-    ) throws MalformedURLException {
+    ) throws IOException {
 		URL sanitized_url = new URL(BrowserUtils.sanitizeUserUrl( page_state.getUrl() ));
 		String page_url = sanitized_url.toString();
 		Browser browser = null;
@@ -597,6 +568,7 @@ public class BrowserService {
 	 * @param rule_sets TODO
 	 * @param reviewed_xpaths
 	 * @return
+	 * @throws MalformedURLException 
 	 * @throws IOException
 	 * @throws XPathExpressionException 
 	 * 
@@ -611,7 +583,7 @@ public class BrowserService {
 			Browser browser, 
 			URL url, 
 			int page_height
-	) {
+	) throws MalformedURLException, IOException {
 		assert xpaths != null;
 		assert browser != null;
 		assert page_state != null;
@@ -623,7 +595,8 @@ public class BrowserService {
 		Document html_doc = Jsoup.parse(body_src);
 		String host = url.getHost();
 		//scroll to bottom of page to force any animated or non visible elements to be made visible
-		browser.scrollToBottomOfPage();
+		//browser.scrollToBottomOfPage();
+		BufferedImage full_page_screenshot = ImageIO.read(new URL(page_state.getFullPageScreenshotUrlComposite()));
 
 		for(String xpath : xpaths) {
 			try {
@@ -658,23 +631,7 @@ public class BrowserService {
 				if(element_location.getY() >= page_height || element_size.getHeight() >= page_height) {
 					try {
 						long manual_extraction_start = System.currentTimeMillis();
-						BufferedImage full_page_screenshot = ImageIO.read(new URL(page_state.getFullPageScreenshotUrlComposite()));
-						int width = element_size.getWidth();
-						int height = element_size.getHeight();
-						
-						if( (element_location.getX() + element_size.getWidth()) > full_page_screenshot.getWidth() ) {
-							width = full_page_screenshot.getWidth() - element_location.getX()-1;
-						}
-						
-						if( (element_location.getY() + element_size.getHeight()) > full_page_screenshot.getHeight() ) {
-							height = full_page_screenshot.getHeight() - element_location.getY()-1;
-						}
-						
-						element_screenshot = full_page_screenshot.getSubimage(element_location.getX(),
-																			  element_location.getY(), 
-																			  width, 
-																			  height);
-						
+						element_screenshot = Browser.getElementScreenshot(element_location, element_size, full_page_screenshot);						
 						String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 						element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
 																				host, 
@@ -713,6 +670,10 @@ public class BrowserService {
 						log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
 						e1.printStackTrace();
+						element_screenshot = Browser.getElementScreenshot(element_location, element_size, full_page_screenshot);
+						String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
+						element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
+						element_screenshot.flush();
 					}
 				}
 				
