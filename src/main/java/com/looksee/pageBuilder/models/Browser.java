@@ -59,6 +59,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import com.assertthat.selenium_shutterbug.core.Capture;
 import com.assertthat.selenium_shutterbug.core.Shutterbug;
 import com.looksee.utils.ImageUtils;
+import com.looksee.utils.TimingUtils;
 
 import cz.vutbr.web.css.CSSFactory;
 import cz.vutbr.web.css.CombinedSelector;
@@ -939,27 +940,28 @@ public class Browser {
 		this.xScrollOffset = x_scroll_offset;
 	}
 	
+	/**
+	 * Scroll to element by scrolling down 1 screen length at a time until the element is visible
+	 *  within the viewport\
+	 *  
+	 * @param xpath
+	 * @param elem
+	 */
 	public void scrollToElement(String xpath, WebElement elem) 
     {
-		Point offsets = elem.getLocation();
-		int offsets_y = -9999999;
-		
 		if(xpath.contains("nav") || xpath.startsWith("//body/header")) {
 			scrollToTopOfPage();
-			this.setXScrollOffset(0);
-			this.setYScrollOffset(0);
 			return;
 		}
 		
-		while(offsets_y != offsets.getY()) {
-			offsets_y = offsets.getY();
+		Point element_offset = elem.getLocation();
+		while(this.getYScrollOffset() != element_offset.getY()) {
 			scrollDownFull();
-
-			offsets = elem.getLocation();
 		}
 
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		element_offset = getViewportScrollOffset();
+		this.setXScrollOffset(element_offset.getX());
+		this.setYScrollOffset(element_offset.getY());
     }
 	
 	/**
@@ -970,6 +972,7 @@ public class Browser {
     { 
 		Point offsets = getViewportScrollOffset();
 		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
+		TimingUtils.pauseThread(1000L);
 		offsets = getViewportScrollOffset();
 		this.setXScrollOffset(offsets.getX());
 		this.setYScrollOffset(offsets.getY());
@@ -1310,21 +1313,33 @@ public class Browser {
 	public void scrollToBottomOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+		Point offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
 	}
 	
 	public void scrollToTopOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, 0)");
+		Point offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
 	}
 	
 	public void scrollDownPercent(double percent) {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollBy(0, (window.innerHeight*"+percent+"))");
+		Point offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
 	}
 	
 	public void scrollDownFull() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollBy(0, window.innerHeight)");
+		Point offsets = getViewportScrollOffset();
+		this.setXScrollOffset(offsets.getX());
+		this.setYScrollOffset(offsets.getY());
 	}
 
 	/**
