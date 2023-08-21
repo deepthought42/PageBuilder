@@ -137,16 +137,11 @@ public class AuditController {
 			//browser.close();
 		
 			log.warn("Extracting element states...");
-			URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
-			BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
-			/*
-			URL page_url = new URL(BrowserUtils.sanitizeUrl(page_state.getUrl(),
-															page_state.isSecured()));
-			*/
+			//URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
+			//BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
 			List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
 			List<ElementState> element_states = browser_service.buildPageElementsWithoutNavigation(	page_state, 
 																									xpaths,
-																									page_screenshot.getHeight(),
 																									browser);
 
 			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
@@ -162,17 +157,13 @@ public class AuditController {
 			page_state_service.addAllElements(page_state.getId(), element_ids);
 */
 			page_state.setElements(element_states);
-			log.warn("page state elements BEFORE save = "+page_state.getElements().size());
 			page_state = page_state_service.save(page_state);
 			//page_state.setElements(page_state_service.getElementStates(page_state.getId()));
 
 			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
-			log.warn("page element states = "+page_state.getElements().size());
+
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
-			log.warn("page state id :: " + page_state.getId());
-
-		    log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
 		    PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
 														    		url_msg.getDomainAuditRecordId(),
 														    		url_msg.getDomainId(), 
@@ -187,20 +178,13 @@ public class AuditController {
 				List<Step> steps = new ArrayList<>();
 				Step step = new LandingStep(page_state);
 				step = step_service.save(step);
-				log.warn("Step = "+step);
-				log.warn("step id : "+step.getId());
 				steps.add(step);
-				log.warn("adding steps to journey = "+steps);
 				Journey journey = new Journey(steps, JourneyStatus.VERIFIED);
 				journey.setCandidateKey(journey.generateKey());
-				log.warn("saving journey");
 				Journey saved_journey = journey_service.save(journey);
 				journey.setId(saved_journey.getId());
 				
-				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map
-				log.warn("building journey Candidate message");
-				log.warn("domain audit id = "+url_msg.getDomainAuditRecordId());
-				
+				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map				
 				DomainMap domain_map = domain_map_service.findByDomainAuditId(url_msg.getDomainAuditRecordId());
 				if(domain_map == null) {
 					domain_map = domain_map_service.save(new DomainMap());
@@ -208,8 +192,6 @@ public class AuditController {
 
 					audit_record_service.addDomainMap(url_msg.getDomainAuditRecordId(), domain_map.getId());
 				}
-				
-				log.warn("domain map id = "+domain_map.getId());
 				
 				domain_map_service.addJourneyToDomainMap(journey.getId(), domain_map.getId());
 				
@@ -220,11 +202,9 @@ public class AuditController {
 																				url_msg.getAccountId(), 
 																				url_msg.getDomainAuditRecordId());
 				
-				log.warn("journey message steps =" + journey_msg.getJourney());
-				log.warn("journey id = "+journey_msg.getJourney().getId());
 				log.warn(page_built_str);
 				String journey_msg_str = mapper.writeValueAsString(journey_msg);
-				log.warn("sending verified journey = "+journey_msg_str);
+				log.warn("Publishing to verified journey topic = "+journey_msg_str);
 
 				pubSubJourneyVerifiedPublisherImpl.publish(journey_msg_str);
 			}
