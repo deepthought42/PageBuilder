@@ -297,7 +297,8 @@ public class BrowserService {
     }
 	
 	/**
-	 * Process used by the web crawler to build {@link PageState} from {@link PageVersion}
+	 * Navigates to a url, checks that the service is available, then removes drift 
+	 * 	chat client from page if it exists. Finally it builds a {@link PageState}
 	 * 
 	 * @param url
 	 * @param browser TODO
@@ -313,37 +314,6 @@ public class BrowserService {
 		assert url != null;
 		
 		browser.navigateTo(url.toString());
-		return performBuildPageProcess( browser, isSecure, httpStatus);
-	}
-	
-	/**
-	 * Navigates to a url, checks that the service is available, then removes drift 
-	 * 	chat client from page if it exists. Finally it builds a {@link PageState}
-	 * @param browser TODO
-	 * @param isSecure TODO
-	 * @param httpStatus TODO
-	 * @param url
-	 * 
-	 * @pre url != null;
-	 * @pre browser != null
-	 * 
-	 * @return {@link PageState}
-	 * @throws WebDriverException 
-	 * @throws  
-	 * 
-	 * @throws MalformedURLException
-	 * @throws IOException 
-	 * @throws GridException 
-	 */
-	public PageState performBuildPageProcess(Browser browser, 
-											 boolean isSecure, 
-											 int httpStatus) 
-													 throws WebDriverException, 
-													 		IOException, 
-													 		NullPointerException
-	{
-		assert browser != null;
-		
 		if(browser.is503Error()) {
 			browser.close();
 			throw new ServiceUnavailableException("503(Service Unavailable) Error encountered. Starting over..");
@@ -424,7 +394,6 @@ public class BrowserService {
 		long y_offset = browser.getYScrollOffset();
 		Dimension size = browser.getDriver().manage().window().getSize();
 		
-		log.warn("source length :: "+source.length());
 		PageState page_state = new PageState(
 										viewport_screenshot_url,
 										new ArrayList<>(),
@@ -477,8 +446,7 @@ public class BrowserService {
 			elements = getDomElementStates(page_state, 
 										   xpaths, 
 										   browser, 
-										   sanitized_url, 
-										   page_height);
+										   sanitized_url);
 		}
 		catch (NullPointerException e) {
 			log.warn("NPE thrown during element state extraction");
@@ -500,17 +468,13 @@ public class BrowserService {
 	 */
 	public List<ElementState> buildPageElementsWithoutNavigation(PageState page_state, 
 																 List<String> xpaths, 
-															 	 int page_height, 
 															 	 Browser browser
 	) throws IOException {
 		assert page_state != null;
-   				
-		List<ElementState> elements = new ArrayList<>();
-		//Map<String, ElementState> elements_mapped = new HashMap<>();
-		//boolean rendering_incomplete = true;
+
 		URL sanitized_url = new URL(BrowserUtils.sanitizeUserUrl( page_state.getUrl() ));
 		
-		return getDomElementStates(page_state, xpaths, browser, sanitized_url, page_height);
+		return getDomElementStates(page_state, xpaths, browser, sanitized_url);
 	}
 	
 	
@@ -537,7 +501,7 @@ public class BrowserService {
 			
 			//get ElementState List by asking multiple bots to build xpaths in parallel
 			//for each xpath then extract element state
-			elements = getDomElementStates(page_state, xpaths, browser, sanitized_url, page_height);
+			elements = getDomElementStates(page_state, xpaths, browser, sanitized_url);
 			return false;
 		}
 		catch (NullPointerException e) {
@@ -563,7 +527,6 @@ public class BrowserService {
 	 * identify and collect data for elements within the Document Object Model 
 	 * @param url TODO
 	 * @param url
-	 * @param page_height TODO
 	 * @param page_source
 	 * @param rule_sets TODO
 	 * @param reviewed_xpaths
@@ -581,8 +544,7 @@ public class BrowserService {
 			PageState page_state, 
 			List<String> xpaths, 
 			Browser browser, 
-			URL url, 
-			int page_height
+			URL url
 	) throws MalformedURLException, IOException {
 		assert xpaths != null;
 		assert browser != null;
@@ -611,24 +573,23 @@ public class BrowserService {
 				if( !web_element.isDisplayed()
 						|| !hasWidthAndHeight(element_size)
 						|| doesElementHaveNegativePosition(element_location)
-						|| (element_location.getY() >= page_height || element_size.getHeight() >= page_height)) {
+						|| isStructureTag(web_element.getTagName())){
 					continue;
 				}
-				Point offset = browser.getViewportScrollOffset();
-				log.warn("viewport offset BEFORE scroll = "+offset);
-				log.warn("browser offset BEFORE scroll = "+browser.getXScrollOffset()+ " , "+browser.getYScrollOffset());				
-				browser.scrollToElement(web_element);
-				offset = browser.getViewportScrollOffset();
-				log.warn("viewport offset AFTER scrolling = "+offset);
-				log.warn("browser offset AFTER scroll = "+browser.getXScrollOffset()+ " , "+browser.getYScrollOffset());				
-
 				
+				if(web_element.getLocation().getY() < browser.getYScrollOffset()) {
+					browser.scrollToTopOfPage();
+				}
+				
+				if(!isElementVisibleInPane(browser, element_location, element_size)) {
+					browser.scrollToElement(web_element);
+				}
 				
 				String css_selector = generateCssSelectorFromXpath(xpath);
 				String element_screenshot_url = "";
 				BufferedImage element_screenshot = null;
 
-				if(element_location.getY() >= page_height || element_size.getHeight() >= page_height) {
+				if(BrowserUtils.isLargerThanViewport(element_size, browser.getViewportSize().getWidth(), browser.getViewportSize().getHeight())) {
 					try {
 						long manual_extraction_start = System.currentTimeMillis();
 						element_screenshot = Browser.getElementScreenshot(element_location, element_size, full_page_screenshot);						
@@ -650,9 +611,6 @@ public class BrowserService {
 						long screenshot_extract_start = System.currentTimeMillis();
 
 						element_screenshot = browser.getElementScreenshot(web_element);
-						//TakesScreenshot scrShot = ((TakesScreenshot)web_element);
-						//File img_file = scrShot.getScreenshotAs(OutputType.FILE);
-						//element_screenshot = ImageIO.read( img_file ); 
 						String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 						
 						log.warn("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
@@ -1028,7 +986,8 @@ public class BrowserService {
 				|| "use".contentEquals(tag_name) || "template".contentEquals(tag_name) 
 				|| "audio".contentEquals(tag_name)  || "iframe".contentEquals(tag_name)
 				|| "noscript".contentEquals(tag_name) || "meta".contentEquals(tag_name) 
-				|| "base".contentEquals(tag_name) || "em".contentEquals(tag_name);
+				|| "base".contentEquals(tag_name) || "em".contentEquals(tag_name)
+				|| "body".contentEquals(tag_name);
 	}
 
 	public static List<WebElement> filterNoWidthOrHeight(List<WebElement> web_elements) {

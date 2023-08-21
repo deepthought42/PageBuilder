@@ -341,15 +341,6 @@ public class PageState extends LookseeObject {
 	 * @pre page != null
 	 */
 	public String generateKey() {
-		/*
-		List<ElementState> elements = new ArrayList<>(this.getElements());
-		Collections.sort(elements);
-		String key = "";
-		for(ElementState element : elements) {
-			key += element.getKey();
-		}
-		*/
-		log.warn("page source value size :: " +getSrc().length());
 		return "pagestate" + org.apache.commons.codec.digest.DigestUtils.sha256Hex( this.getUrl() + BrowserService.generalizeSrc(BrowserService.extractBody(this.getSrc()) ));
 	}
 

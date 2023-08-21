@@ -959,9 +959,7 @@ public class Browser {
 			scrollDownFull();
 		}
 
-		element_offset = getViewportScrollOffset();
-		this.setXScrollOffset(element_offset.getX());
-		this.setYScrollOffset(element_offset.getY());
+		getViewportScrollOffset();
     }
 	
 	/**
@@ -970,25 +968,10 @@ public class Browser {
 	 */
 	public void scrollToElement(WebElement element) 
     { 
-		Point offsets = getViewportScrollOffset();
 		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
-		TimingUtils.pauseThread(1000L);
-		offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
-    }
-	
-	/**
-	 * 
-	 * @param element
-	 */
-	public void scrollToYCoordinate(WebElement element) 
-    { 
-		Point offsets = getViewportScrollOffset();
-		((JavascriptExecutor)driver).executeScript("arguments[0].scrollTo(0, "+element.getLocation().getY()+");", element);
-		offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		long pause_time = Math.abs(this.getYScrollOffset() - element.getLocation().getY())/8;
+		TimingUtils.pauseThread(pause_time);
+		getViewportScrollOffset();
     }
 	
 	public void removeElement(String class_name) {
@@ -1310,36 +1293,36 @@ public class Browser {
         return sb.toString();
     }
 
+	/**
+	 * Scroll to th bottom of the body element
+	 */
 	public void scrollToBottomOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, document.body.scrollHeight)");
-		Point offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		TimingUtils.pauseThread(500L);
+		getViewportScrollOffset();
 	}
 	
+	/**
+	 * Scroll to position (0,0)
+	 */
 	public void scrollToTopOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, 0)");
-		Point offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		TimingUtils.pauseThread(1000L);
+		getViewportScrollOffset();
 	}
 	
 	public void scrollDownPercent(double percent) {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollBy(0, (window.innerHeight*"+percent+"))");
-		Point offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		getViewportScrollOffset();
 	}
 	
 	public void scrollDownFull() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollBy(0, window.innerHeight)");
-		Point offsets = getViewportScrollOffset();
-		this.setXScrollOffset(offsets.getX());
-		this.setYScrollOffset(offsets.getY());
+		getViewportScrollOffset();
 	}
 
 	/**
