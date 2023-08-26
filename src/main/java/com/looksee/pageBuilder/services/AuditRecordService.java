@@ -379,4 +379,14 @@ public class AuditRecordService {
 	public void addDomainMap(long domainId, long domainMapId) {
 		audit_record_repo.addDomainMap(domainId, domainMapId);
 	}
+	
+	/**
+	 * 
+	 * @param audit_record_id
+	 * @param key
+	 * @return
+	 */
+	public PageState findPageWithKey(long audit_record_id, String key) {
+		return page_state_service.findPageWithKey(audit_record_id, key);
+	}
 }
