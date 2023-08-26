@@ -134,31 +134,32 @@ public class AuditController {
 			//update audit record with progress
 			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 			page_state = browser_service.buildPageState(url, browser, is_secure, http_status);
-			//browser.close();
 		
-			log.warn("Extracting element states...");
-			//URL full_page_screenshot_url = new URL(page_state.getFullPageScreenshotUrlOnload());
-			//BufferedImage page_screenshot = ImageUtils.readImageFromURL(full_page_screenshot_url);
-			List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
-			List<ElementState> element_states = browser_service.buildPageElementsWithoutNavigation(	page_state, 
-																									xpaths,
-																									browser);
-
-			element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
+			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
+			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS
 			
-			/*
-			List<ElementState> saved_elements = saveNewElements(page_state.getId(), element_states);
-
-			List<Long> element_ids = saved_elements.parallelStream()
-												   .map(element -> element.getId())
-												   .collect(Collectors.toList());
+			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainAuditRecordId(), 
+																				page_state.getKey());
 			
-			log.warn("element ids :: " + element_ids);
-			page_state_service.addAllElements(page_state.getId(), element_ids);
-*/
-			page_state.setElements(element_states);
-			page_state = page_state_service.save(page_state);
-			//page_state.setElements(page_state_service.getElementStates(page_state.getId()));
+			if(page_state_record == null 
+					|| element_state_service.getAllExistingKeys(page_state_record.getId()).isEmpty()) 
+			{				
+				log.warn("Extracting element states...");
+				
+				List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
+				List<ElementState> element_states = browser_service.getDomElementStates(	page_state, 
+																							xpaths,
+																							browser);
+				String host = url.getHost();
+
+				element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
+				element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
+				page_state.setElements(element_states);
+				page_state = page_state_service.save(page_state);
+			}
+			else {
+				page_state = page_state_record;
+			}
 
 			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
 
@@ -201,8 +202,7 @@ public class AuditController {
 																				url_msg.getDomainId(), 
 																				url_msg.getAccountId(), 
 																				url_msg.getDomainAuditRecordId());
-				
-				log.warn(page_built_str);
+				log.warn("journey steps = "+ journey.getSteps());
 				String journey_msg_str = mapper.writeValueAsString(journey_msg);
 				log.warn("Publishing to verified journey topic = "+journey_msg_str);
 

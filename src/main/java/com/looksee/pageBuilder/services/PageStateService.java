@@ -182,4 +182,8 @@ public class PageStateService {
 	public void addAllElements(long page_state_id, List<Long> element_ids) {
 		page_state_repo.addAllElements(page_state_id, element_ids);
 	}
+
+	public PageState findPageWithKey(long audit_record_id, String key) {
+		return page_state_repo.findPageWithKey(audit_record_id, key);
+	}
 }

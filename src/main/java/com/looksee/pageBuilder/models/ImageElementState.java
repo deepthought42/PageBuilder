@@ -87,44 +87,64 @@ public class ImageElementState extends ElementState {
 				css_selector,
 				foreground_color,
 				background_color,
-				!image_search.getFullMatchingImages().isEmpty());
+				false);
+		if(image_search != null) {
+			setImageFlagged(!image_search.getFullMatchingImages().isEmpty());
+		}
 		setLandmarkInfoSet(landmark_info_set);
 		setFaces(faces);
 		setImageSearchSet(imageSearchSet);
 		setLogos(logos);
 		setLabels(labels);
-		setAdult(safe_search_annotation.getAdult());
-		setRacy(safe_search_annotation.getRacy());
-		setViolence(safe_search_annotation.getViolence());
+		
+		if(safe_search_annotation != null) {			
+			setAdult(safe_search_annotation.getAdult());
+			setRacy(safe_search_annotation.getRacy());
+			setViolence(safe_search_annotation.getViolence());
+		}
+		else {
+			setAdult("");
+			setRacy("");
+			setViolence("");
+		}
 	}
 
 	public Set<Logo> getLogos() {
 		return logos;
 	}
+	
 	public void setLogos(Set<Logo> logos) {
 		this.logos = logos;
 	}
+	
 	public Set<Label> getLabels() {
 		return labels;
 	}
+	
 	public void setLabels(Set<Label> labels) {
 		this.labels = labels;
 	}
+	
 	public Set<ImageLandmarkInfo> getLandmarkInfoSet() {
 		return landmarkInfoSet;
 	}
+	
 	public void setLandmarkInfoSet(Set<ImageLandmarkInfo> landmark_info_set) {
 		this.landmarkInfoSet = landmark_info_set;
 	}
+	
 	public Set<ImageFaceAnnotation> getFaces() {
 		return faces;
 	}
+	
 	public void setFaces(Set<ImageFaceAnnotation> faces) {
 		this.faces = faces;
 	}
+	
 	public ImageSearchAnnotation getImageSearchSet() {
 		return imageSearchSet;
 	}
+	
 	public void setImageSearchSet(ImageSearchAnnotation image_search_set) {
 		this.imageSearchSet = image_search_set;
 	}

@@ -869,6 +869,12 @@ public class BrowserUtils {
 	public static boolean isLargerThanViewport(Dimension element_size, int viewportWidth, int viewportHeight) {
 		return element_size.getWidth() > viewportWidth || element_size.getHeight() > viewportHeight;
 	}
+	
+	/**
+	 */
+	public static boolean isLargerThanViewport(ElementState element, int viewportWidth, int viewportHeight) {
+		return element.getWidth() > viewportWidth || element.getHeight() > viewportHeight;
+	}
 
 	/**
 	 * Handles extra formatting for relative links

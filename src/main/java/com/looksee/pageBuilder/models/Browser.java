@@ -517,6 +517,7 @@ public class Browser {
 	}
 
 	/**
+	 * Retrieves screenshot for an {@link WebElement element}
 	 * 
 	 * @param screenshot
 	 * @param elem
@@ -527,10 +528,11 @@ public class Browser {
 		//log.warn("Fullpage width and height :: " + this.getFullPageScreenshot().getWidth() + " , " + this.getFullPageScreenshot().getHeight());
 
 		//calculate element position within screen
-		return Shutterbug.shootElementVerticallyCentered(driver, element).getImage(); 
+		return Shutterbug.shootElementVerticallyCentered(driver, element).getImage();
 		//return Shutterbug.shootElement(driver, element).getImage();
 	}
 	
+
 	/**
 	 * 
 	 * @param screenshot
@@ -591,7 +593,12 @@ public class Browser {
 		return page_screenshot.getSubimage(element_location.getX(), element_location.getY(), width, height);
 	}
 
-	
+	/**
+	 * 
+	 * @param elements
+	 * @param for_id
+	 * @return
+	 */
 	public static ElementState findLabelFor(Set<ElementState> elements, String for_id){
 		for(ElementState elem : elements){
 			//ElementState tag = (ElementState)elem;
@@ -967,13 +974,18 @@ public class Browser {
 	 * @param element
 	 */
 	public void scrollToElement(WebElement element) 
-    { 
+    {
 		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
-		long pause_time = Math.abs(this.getYScrollOffset() - element.getLocation().getY())/8;
+		long pause_time = Math.abs(this.getYScrollOffset() - element.getLocation().getY())/10;
 		TimingUtils.pauseThread(pause_time);
 		getViewportScrollOffset();
     }
 	
+	/**
+	 * Removes element from browser DOM
+	 * 
+	 * @param class_name
+	 */
 	public void removeElement(String class_name) {
 		JavascriptExecutor js;
 		if (this.getDriver() instanceof JavascriptExecutor) {
@@ -1032,12 +1044,24 @@ public class Browser {
 	 * 
 	 * @return {@link Point} containing offsets
 	 */
-	public Point getViewportScrollOffset(){		
+	public Point getViewportScrollOffset(){	
+		int x_offset = 0;
+		int y_offset = 0;
+		
+		Object offset_obj= ((JavascriptExecutor)driver).executeScript("return window.pageXOffset+','+window.pageYOffset;");
+		if(offset_obj instanceof String) {
+			String offset_str = (String)offset_obj;
+			log.warn("combined offset = "+offset_str);
+			String[] coord = offset_str.split(",");
+			x_offset = Integer.parseInt(coord[0]);
+			y_offset = Integer.parseInt(coord[1]);
+		}
+
+		/*
 		Object objy = ((JavascriptExecutor)driver).executeScript("return window.pageYOffset;");
 		Object objx = ((JavascriptExecutor)driver).executeScript("return window.pageXOffset;");
 
-		int y_offset = 0;
-		int x_offset = 0;
+		
 		if(objy instanceof Double){
 			y_offset = ((Double)objy).intValue(); 
 		}
@@ -1063,6 +1087,7 @@ public class Browser {
 		else {
 			x_offset = Integer.parseInt(objx.toString());
 		}
+		*/
 		
 		this.setXScrollOffset(x_offset);
 		this.setYScrollOffset(y_offset);
@@ -1309,7 +1334,6 @@ public class Browser {
 	public void scrollToTopOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, 0)");
-		TimingUtils.pauseThread(1000L);
 		getViewportScrollOffset();
 	}
 	
