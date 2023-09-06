@@ -138,7 +138,7 @@ public class AuditController {
 			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
 			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS
 			
-			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainAuditRecordId(), 
+			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainId(), 
 																				page_state.getKey());
 			
 			if(page_state_record == null 
@@ -155,7 +155,7 @@ public class AuditController {
 				element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
 				element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 				page_state.setElements(element_states);
-				page_state = page_state_service.save(url_msg.getDomainAuditRecordId(), page_state);
+				page_state = page_state_service.save(url_msg.getDomainId(), page_state);
 			}
 			else {
 				page_state = page_state_record;
