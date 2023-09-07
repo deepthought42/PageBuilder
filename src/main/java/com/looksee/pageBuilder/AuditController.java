@@ -246,7 +246,7 @@ public class AuditController {
 	 */
 	private List<ElementState> saveNewElements(long page_state_id, List<ElementState> element_states) {		
 		return element_states.stream()
-							   .map(element -> element_state_service.save(element))
+							   .map(element -> element_state_service.save(page_state_id, element))
 							   .collect(Collectors.toList());
 	}	
 
