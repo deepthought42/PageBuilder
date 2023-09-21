@@ -192,16 +192,6 @@ public class PageStateService {
 		return element_state_repo.getElementState(page_id, element_id);
 	}
 
-	/**
-	 * Retrieves an {@link AuditRecord} for the page with the given id
-	 * @param id
-	 * @return
-	 */
-	public PageAuditRecord getAuditRecord(long id) {
-		
-		return page_state_repo.getAuditRecord(id);
-	}
-
 	public Optional<PageState> findById(long page_id) {
 		return page_state_repo.findById(page_id);
 	}
@@ -214,7 +204,7 @@ public class PageStateService {
 		page_state_repo.addAllElements(page_state_id, element_ids);
 	}
 
-	public PageState findPageWithKey(long domain_id, String key) {
-		return page_state_repo.findPageWithKey(domain_id, key);
+	public PageState findPageWithKey(long domain_audit_record_id, String key) {
+		return page_state_repo.findPageWithKey(domain_audit_record_id, key);
 	}
 }

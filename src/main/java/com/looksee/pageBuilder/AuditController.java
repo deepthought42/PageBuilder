@@ -1,7 +1,5 @@
 package com.looksee.pageBuilder;
 
-
-import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,8 +51,6 @@ import com.looksee.pageBuilder.services.PageStateService;
 import com.looksee.pageBuilder.services.StepService;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ElementStateUtils;
-import com.looksee.utils.ImageUtils;
-import com.looksee.utils.TimingUtils;
 
 
 /**
@@ -137,8 +133,7 @@ public class AuditController {
 		
 			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
 			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS
-			
-			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainId(), 
+			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainAuditRecordId(), 
 																				page_state.getKey());
 			
 			if(page_state_record == null 
@@ -156,6 +151,7 @@ public class AuditController {
 				element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 				page_state.setElements(element_states);
 				page_state = page_state_service.save(url_msg.getDomainId(), page_state);
+				audit_record_service.addPageToAuditRecord(url_msg.getDomainAuditRecordId(), page_state.getId());
 			}
 			else {
 				page_state = page_state_record;
@@ -177,7 +173,7 @@ public class AuditController {
 		    if(url_msg.getDomainAuditRecordId() >= 0) {
 				
 				List<Step> steps = new ArrayList<>();
-				Step step = new LandingStep(page_state);
+				Step step = new LandingStep(page_state, JourneyStatus.VERIFIED);
 				step = step_service.save(step);
 				steps.add(step);
 				Journey journey = new Journey(steps, JourneyStatus.VERIFIED);

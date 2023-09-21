@@ -32,6 +32,7 @@ public class Journey extends LookseeObject {
 		setSteps(new ArrayList<>());
 		setOrderedIds(new ArrayList<>());
 		setKey(generateKey());
+		setStatus(JourneyStatus.CANDIDATE);
 	}
 	
 	public Journey(List<Step> steps, JourneyStatus status) {
