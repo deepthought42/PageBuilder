@@ -209,7 +209,9 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 	 * @return
 	 */
 	public String generateKey() {
-		
+		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(getOuterHtml());
+
+		/*
 		String key = "";
 		List<String> properties = new ArrayList<>(getRenderedCssValues().keySet());
 		Collections.sort(properties);
@@ -218,6 +220,7 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 		}
 		
 		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(key)+org.apache.commons.codec.digest.DigestUtils.sha256Hex(getOuterHtml());
+		*/
 	}
 
 	/**

@@ -249,8 +249,18 @@ public class BrowserService {
 		return element_state;
 	}
 
+	/**
+	 * 
+	 * @param src
+	 * @return
+	 */
 	public static String generalizeSrc(String src) {
 		assert src != null;
+		
+		if(src.isBlank()) {
+			return "";
+		}
+		
 		Document html_doc = Jsoup.parse(src);
 		html_doc.select("script").remove();
 		html_doc.select("link").remove();
@@ -267,9 +277,11 @@ public class BrowserService {
 			*/
 		    List<String>  attToRemove = new ArrayList<>();
 			for (Attribute a : element.attributes()) {
+				/*
 				if(element.tagName().contentEquals("img") && a.getKey().contentEquals("src")) {
 					continue;
 				}
+				*/
 		        // transfer it into a list -
 		        // to be sure ALL data-attributes will be removed!!!
 		        attToRemove.add(a.getKey());
@@ -335,34 +347,29 @@ public class BrowserService {
 	 * @throws Exception 
 	 * 
 	 * @pre browser != null
+	 * 
+	 * @Version - 9/18/2023
 	 */
 	public PageState buildPageState( Browser browser, 
 									boolean isSecure, 
 									int httpStatus ) 
 											throws WebDriverException, 
 													IOException, 
-													NullPointerException {
+													NullPointerException 
+	{
 		assert browser != null;
-		
+
 		URL current_url = new URL(browser.getDriver().getCurrentUrl());
 		String url_without_protocol = BrowserUtils.getPageUrl(current_url.toString());
-		
-		if(current_url.toString().contains("dashboard")) {
-			log.warn("BUILDING DASHBOARD PAGE STATE...");
-			log.warn("url_without_protocol = "+url_without_protocol);
-		}
-		else if(current_url.toString().contains("?#")) {
-			log.warn("BUILDING    ?#   PAGE STATE..."+current_url);
-		}
+		log.warn("building page state for URL :: "+current_url);
 
-        //remove 3rd party chat apps such as drift, and ...(NB: fill in as more identified)
-        //browser.removeDriftChat();
-        
+		boolean is_secure = BrowserUtils.checkIfSecure(current_url);
+        int status_code = BrowserUtils.getHttpStatus(current_url);
+
         //scroll to bottom then back to top to make sure all elements that may be hidden until the page is scrolled
-		String source = browser.getDriver().getPageSource();
+		String source = Browser.cleanSrc(browser.getDriver().getPageSource());
 		String title = browser.getDriver().getTitle();
 
-		//List<ElementState> elements = extractElementStates(source, url, browser);
 		BufferedImage viewport_screenshot = browser.getViewportScreenshot();
 		String screenshot_checksum = ImageUtils.getChecksum(viewport_screenshot);
 		String viewport_screenshot_url = GoogleCloudStorage.saveImage(viewport_screenshot, 
@@ -372,14 +379,6 @@ public class BrowserService {
 		viewport_screenshot.flush();
 		
 		BufferedImage full_page_screenshot = browser.getFullPageScreenshotShutterbug();		
-		
-		//BufferedImage shutterbug_fullpage_screenshot = browser.getFullPageScreenshot();
-		
-		/*
-		if(full_page_screenshot.getHeight() < (shutterbug_fullpage_screenshot.getHeight() - viewport_screenshot.getHeight()) ) {
-			full_page_screenshot = shutterbug_fullpage_screenshot;
-		}
-		*/
 		String full_page_screenshot_checksum = ImageUtils.getChecksum(full_page_screenshot);
 		String full_page_screenshot_url = GoogleCloudStorage.saveImage(full_page_screenshot, 
 																		current_url.getHost(), 
@@ -392,27 +391,25 @@ public class BrowserService {
 		long y_offset = browser.getYScrollOffset();
 		Dimension size = browser.getDriver().manage().window().getSize();
 		
-		PageState page_state = new PageState(
-										viewport_screenshot_url,
-										new ArrayList<>(),
-										source,
-										false,
-										x_offset,
-										y_offset,
-										size.getWidth(),
-										size.getHeight(),
-										BrowserType.CHROME,
-										full_page_screenshot_url,
-										full_page_screenshot.getWidth(), 
-										full_page_screenshot.getHeight(), 
-										url_without_protocol,
-										title,
-										isSecure,
-										httpStatus, 
-										composite_url,
-										current_url.toString());
-
-		return page_state;
+		return new PageState(
+							viewport_screenshot_url,
+							new ArrayList<>(),
+							source,
+							false,
+							x_offset,
+							y_offset,
+							size.getWidth(),
+							size.getHeight(),
+							BrowserType.CHROME,
+							full_page_screenshot_url,
+							full_page_screenshot.getWidth(), 
+							full_page_screenshot.getHeight(), 
+							url_without_protocol,
+							title,
+							is_secure,
+							status_code, 
+							composite_url,
+							current_url.toString());
 	}
 	
 	/**
@@ -1596,7 +1593,7 @@ public class BrowserService {
         if(matcher.find()) {
         	return matcher.group();
         }
-        return null;
+        return "";
 	}
 
 	public static Set<String> extractMetadata(String src) {
@@ -1725,15 +1722,11 @@ public class BrowserService {
 			else {
 				try {
 					//extract element screenshot from full page screenshot
-					long screenshot_extract_start = System.currentTimeMillis();
-
 					element_screenshot = browser.getElementScreenshot(web_element);
 					String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 					
 					element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
 					element_screenshot.flush();
-					
-					log.warn("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
 				}
 				catch(Exception e1){
 					log.warn("execption occurred capturing element screenshot at "+web_element);

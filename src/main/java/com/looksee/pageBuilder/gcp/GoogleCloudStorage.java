@@ -37,25 +37,24 @@ public class GoogleCloudStorage {
 	
 	public static String saveImage(BufferedImage image, 
 								   String domain, 
-								   String element_key, 
+								   String checksum, 
 								   BrowserType browser
    ) throws IOException {
 		assert image != null;
 		assert domain != null;
 		assert !domain.isEmpty();
-		assert element_key != null;
-		assert !element_key.isEmpty();
+		assert checksum != null;
+		assert !checksum.isEmpty();
 		assert browser != null;
 		
 		Storage storage = StorageOptions.getDefaultInstance().getService();
 		Bucket bucket = storage.get(bucket_name);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write( image, "png", baos );
-		//baos.flush();
 		byte[] imageInByte = baos.toByteArray();
 		baos.close();
 		String stripped_domain = domain.replace(".", "").replace("/", "").replace(":", "").replace("https", "").replace("http", "");
-		String key = stripped_domain+element_key+browser;
+		String key = stripped_domain+checksum+browser;
 		String file_name = key+".png";
 		Blob blob = bucket.get(file_name);
 		if(blob != null && blob.exists()) {

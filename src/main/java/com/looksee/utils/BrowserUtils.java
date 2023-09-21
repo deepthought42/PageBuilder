@@ -1150,7 +1150,7 @@ public class BrowserUtils {
 			BufferedImage screenshot = browser.getViewportScreenshot();
 			
 			//calculate screenshot checksum
-			new_checksum = PageState.getFileChecksum(screenshot);
+			new_checksum = ImageUtils.getChecksum(screenshot);
 		
 			transition_detected = !new_checksum.equals(last_checksum);
 

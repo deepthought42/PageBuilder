@@ -386,7 +386,7 @@ public class AuditRecordService {
 	 * @param key
 	 * @return
 	 */
-	public PageState findPageWithKey(long domain_id, String key) {
-		return page_state_service.findPageWithKey(domain_id, key);
+	public PageState findPageWithKey(long domain_audit_record_id, String key) {
+		return page_state_service.findPageWithKey(domain_audit_record_id, key);
 	}
 }

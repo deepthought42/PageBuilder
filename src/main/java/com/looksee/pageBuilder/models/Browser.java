@@ -160,6 +160,7 @@ public class Browser {
 		
 		try {
 			waitForPageToLoad();
+			TimingUtils.pauseThread(3000L);
 		}catch(Exception e) {
 			/*
 			e.printStackTrace();
@@ -173,6 +174,7 @@ public class Browser {
 			}
 			*/
 		}
+		TimingUtils.pauseThread(5000L);
 	}
 
 	/**
@@ -182,6 +184,8 @@ public class Browser {
 	 * @return
 	 * 
 	 * @precondition src != null
+	 * 
+	 * @Version - 9/18/2023
 	 */
 	public static String cleanSrc(String src) {
 		Document html_doc = Jsoup.parse(src);
@@ -201,9 +205,12 @@ public class Browser {
 		}
 		
 		String html = html_doc.html();
+		html = html.replace("  ", " ");
+		html = html.replace("\n", "");
+		html = html.replace("\r", "");
+		html = html.replace("\t", "");
+
 		return html.replace(" style=\"\"", "");
-		//html_doc.select("link,script,style").remove();
-		//return html_doc.html();
 	}
 	
 	/**
