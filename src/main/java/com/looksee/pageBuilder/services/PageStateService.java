@@ -72,10 +72,10 @@ public class PageStateService {
 	 * @pre page_state != null
 	 */
 	@Retry(name = "neoforj")
-	public PageState save(long domain_id, PageState page_state) throws Exception {
+	public PageState save(long audit_record_id, PageState page_state) throws Exception {
 		assert page_state != null;
 		
-		PageState page_state_record = page_state_repo.findPageWithKey(domain_id, page_state.getKey());		
+		PageState page_state_record = page_state_repo.findPageWithKey(audit_record_id, page_state.getKey());		
 		if(page_state_record == null) {
 			log.warn("page state wasn't found in database. Saving new page state to neo4j");
 			
@@ -204,7 +204,7 @@ public class PageStateService {
 		page_state_repo.addAllElements(page_state_id, element_ids);
 	}
 
-	public PageState findPageWithKey(long domain_audit_record_id, String key) {
-		return page_state_repo.findPageWithKey(domain_audit_record_id, key);
+	public PageState findPageWithKey(long audit_record_id, String key) {
+		return page_state_repo.findPageWithKey(audit_record_id, key);
 	}
 }

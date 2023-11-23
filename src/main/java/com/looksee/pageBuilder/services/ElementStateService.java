@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.looksee.models.rules.Rule;
@@ -49,7 +50,7 @@ public class ElementStateService {
 		return element_record;
 	}
 	
-	@Retry(name = "neoforj")
+	@Retryable
 	public ElementState save(long page_state_id, ElementState element) {
 		assert element != null;
 
@@ -217,5 +218,9 @@ public class ElementStateService {
 
 	public List<ElementState> getElements(Set<String> existing_keys) {
 		return element_repo.getElements(existing_keys);
+	}
+
+	public ElementState findByDomainAuditAndKey(long domain_audit_id, ElementState element) throws Exception {
+		return element_repo.findByDomainAuditAndKey(domain_audit_id, element.getKey());
 	}
 }

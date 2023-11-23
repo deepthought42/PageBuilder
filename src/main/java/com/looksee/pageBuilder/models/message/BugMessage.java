@@ -2,8 +2,8 @@ package com.looksee.pageBuilder.models.message;
 
 import java.util.Date;
 
-import com.looksee.pageBuilder.models.LookseeObject;
 import com.looksee.pageBuilder.models.enums.BugType;
+import com.looksee.pageBuilder.models.LookseeObject;
 
 
 /**

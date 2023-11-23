@@ -61,7 +61,6 @@ public class StepService {
 		assert step != null;
 		
 		if(step instanceof SimpleStep) {
-			log.warn("saving simple step");
 			SimpleStep step_record = simple_step_repo.findByKey(step.getKey());
 			SimpleStep simple_step = (SimpleStep)step;
 			
@@ -93,12 +92,9 @@ public class StepService {
 			return new_simple_step;
 		}
 		else if(step instanceof LoginStep) {
-			log.warn("looking up LOGIN step with key :: "+step.getKey());
 			LoginStep step_record = login_step_repo.findByKey(step.getKey());
 			LoginStep login_step = (LoginStep)step;
 			if(step_record != null) {
-				log.warn("found login step with key :: "+step_record.getKey());
-				log.warn("loading LOGIN STEP connections...");
 				step_record.setTestUser(login_step.getTestUser());
 				step_record.setUsernameElement(login_step.getUsernameElement());
 				step_record.setPasswordElement(login_step.getPasswordElement());
@@ -114,27 +110,20 @@ public class StepService {
 			new_login_step.setKey(login_step.generateKey());
 			new_login_step.setCandidateKey(login_step.getCandidateKey());
 			new_login_step.setStatus(login_step.getStatus());
-			log.warn("saving LOGIN step");
 			new_login_step = login_step_repo.save(new_login_step);
 			
-			log.warn("adding start page to login step");
 			setStartPage(new_login_step.getId(), login_step.getStartPage().getId());
 			new_login_step.setStartPage(login_step.getStartPage());
 			
-			log.warn("setting end page");
 			addEndPage(new_login_step.getId(), login_step.getEndPage().getId());
 			new_login_step.setEndPage(login_step.getEndPage());
 			
-			log.warn("adding username element to login step");
 			new_login_step.setUsernameElement(login_step.getUsernameElement());
 			
-			log.warn("adding password element to login step");
 			new_login_step.setPasswordElement(login_step.getPasswordElement());
 
-			log.warn("adding submit element to login step");
 			new_login_step.setSubmitElement(login_step.getSubmitElement());
 
-			log.warn("login step test user id :: "+login_step.getTestUser().getId());
 			new_login_step.setTestUser(login_step.getTestUser());
 
 			return new_login_step;
