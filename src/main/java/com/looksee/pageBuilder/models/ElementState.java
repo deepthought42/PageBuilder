@@ -1,12 +1,10 @@
 package com.looksee.pageBuilder.models;
 
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +13,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.looksee.pageBuilder.services.BrowserService;
 import com.looksee.pageBuilder.models.enums.ElementClassification;
 
 
@@ -209,8 +208,14 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 	 * @return
 	 */
 	public String generateKey() {
-		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(getOuterHtml());
-
+		String generalized_html = BrowserService.generalizeSrc(getOuterHtml());
+		String attributes = "";
+		List<String> ordered_attribute_keys = getAttributes().keySet().stream().sorted().collect(Collectors.toList());
+		
+		for(String attr_key : ordered_attribute_keys) {
+			attributes += getAttributes().get(attr_key);
+		}
+		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(generalized_html+attributes);
 		/*
 		String key = "";
 		List<String> properties = new ArrayList<>(getRenderedCssValues().keySet());

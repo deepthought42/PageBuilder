@@ -1058,7 +1058,6 @@ public class Browser {
 		Object offset_obj= ((JavascriptExecutor)driver).executeScript("return window.pageXOffset+','+window.pageYOffset;");
 		if(offset_obj instanceof String) {
 			String offset_str = (String)offset_obj;
-			log.warn("combined offset = "+offset_str);
 			String[] coord = offset_str.split(",");
 			x_offset = Integer.parseInt(coord[0]);
 			y_offset = Integer.parseInt(coord[1]);
@@ -1371,5 +1370,16 @@ public class Browser {
 
 	public WebElement findElement(String xpath) throws WebDriverException{
 		return getDriver().findElement(By.xpath(xpath));
+	}
+
+	/**
+	 * 
+	 * @param element
+	 */
+	public void scrollToElementCentered(WebElement element) 
+	{ 
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
+		
+		getViewportScrollOffset();
 	}
 }

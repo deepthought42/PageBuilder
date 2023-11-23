@@ -1,28 +1,22 @@
 package com.looksee.pageBuilder.models.message;
 
 import com.looksee.pageBuilder.models.enums.BrowserType;
-import com.looksee.pageBuilder.models.enums.PathStatus;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
 import com.looksee.pageBuilder.models.journeys.Journey;
 
 
-/**
- * 
- */
-public class JourneyMessage extends Message {
+public class JourneyMessage extends DomainAuditMessage {
 
-	//private List<Step> steps;
 	private Journey journey;
-	private PathStatus status;
+	private JourneyStatus status;
 	private BrowserType browser;
 	
-	public JourneyMessage(Journey journey,
-					   PathStatus status, 
-					   BrowserType browser_type, 
-					   long domain_id, 
-					   long account_id, 
-					   long audit_record_id)
-	{
-		super(domain_id, account_id, audit_record_id);
+	public JourneyMessage( Journey journey, 
+						   JourneyStatus status, 
+						   BrowserType browser_type, 
+						   long account_id, 
+						   long audit_record_id){
+		super(account_id, audit_record_id);
 		setJourney(journey);
 		setStatus(status);
 		setBrowser(browser_type);
@@ -32,16 +26,15 @@ public class JourneyMessage extends Message {
 		return new JourneyMessage(journey.clone(),
 								  getStatus(), 
 								  getBrowser(), 
-								  getDomainId(), 
 								  getAccountId(),
 								  getDomainAuditRecordId());
 	}
 
-	public PathStatus getStatus() {
+	public JourneyStatus getStatus() {
 		return status;
 	}
 
-	private void setStatus(PathStatus status) {
+	private void setStatus(JourneyStatus status) {
 		this.status = status;
 	}
 
@@ -53,11 +46,11 @@ public class JourneyMessage extends Message {
 		this.browser = browser;
 	}
 
-	public Journey getJourney() {
-		return journey;
-	}
-
 	public void setJourney(Journey journey) {
 		this.journey = journey;
+	}
+	
+	public Journey getJourney() {
+		return this.journey;
 	}
 }

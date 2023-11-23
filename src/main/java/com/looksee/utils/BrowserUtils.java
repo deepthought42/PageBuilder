@@ -33,6 +33,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -1174,5 +1175,17 @@ public class BrowserUtils {
 		}
 
 		return null;
+	}
+	
+	/**
+	 * Checks if a {@link WebElement element} is currently hidden
+	 * 
+	 * @param web_element {@link WebElement element}
+	 * 
+	 * @return returns true if it is hidden, otherwise returns false
+	 */
+	public static boolean isHidden(WebElement web_element) {
+		Rectangle rect = web_element.getRect();
+		return rect.getX()==0 && rect.getY()==0 && rect.getWidth()==0 && rect.getHeight()==0;
 	}
 }

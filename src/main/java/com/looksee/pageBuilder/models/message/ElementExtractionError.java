@@ -7,13 +7,11 @@ public class ElementExtractionError extends Message{
 	private long page_id;
 	
 	public ElementExtractionError(long account_id, 		
-								  long audit_record_id,
-								  long domain_id,
 								  long page_state_id, 
 								  String page_url,
 								  String msg
 	) {
-		super(domain_id, account_id, audit_record_id);
+		super(account_id);
 		setPageId(page_state_id);
 		setMessage(msg);
 		setPageUrl(page_url);

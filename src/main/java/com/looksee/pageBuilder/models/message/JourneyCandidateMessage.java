@@ -8,32 +8,33 @@ import com.looksee.pageBuilder.models.journeys.Journey;
 /**
  * 
  */
-public class JourneyCandidateMessage extends Message {
+public class JourneyCandidateMessage extends DomainAuditMessage {
 
+	private long map_id;
 	private Journey journey;
-	//private List<Step> steps;
 	private BrowserType browser;
 	
 	public JourneyCandidateMessage() {}
 	
 	public JourneyCandidateMessage(Journey journey, 
 								   BrowserType browser_type, 
-								   long domain_id, 
 								   long account_id, 
-								   long audit_record_id)
+								   long audit_record_id, 
+								   long map_id)
 	{
-		super(account_id, audit_record_id, domain_id);
+		super(account_id, audit_record_id);
 		setJourney(journey);
 		//setSteps(steps);
 		setBrowser(browser_type);
+		setMapId(map_id);
 	}
 
 	public JourneyCandidateMessage clone(){
-		return new JourneyCandidateMessage(null, 
+		return new JourneyCandidateMessage(getJourney(), 
 								  getBrowser(), 
-								  getDomainId(),
-								  getAccountId(), 
-								  getDomainAuditRecordId());
+								  getAccountId(),
+								  getDomainAuditRecordId(), 
+								  getMapId());
 	}
 
 	public BrowserType getBrowser() {
@@ -44,21 +45,20 @@ public class JourneyCandidateMessage extends Message {
 		this.browser = browser;
 	}
 
-	/*
-	public void setSteps(List<Step> steps) {
-		this.steps = steps;
-	}
-	
-	public List<Step> getSteps() {
-		return this.steps;
-	}
-*/
 	public Journey getJourney() {
 		return journey;
 	}
 
 	public void setJourney(Journey journey) {
 		this.journey = journey;
+	}
+
+	public long getMapId() {
+		return map_id;
+	}
+
+	public void setMapId(long map_id) {
+		this.map_id = map_id;
 	}
 	
 }
