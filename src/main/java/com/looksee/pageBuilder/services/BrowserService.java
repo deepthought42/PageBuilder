@@ -533,91 +533,96 @@ public class BrowserService {
 		Document html_doc = Jsoup.parse(body_src);
 		String host = (new URL(browser.getDriver().getCurrentUrl())).getHost();
 		
+		List<String> errored_xpaths = new ArrayList<>();
 		//iterate over xpaths to build ElementStates without screenshots
 		for(String xpath : xpaths) {
 			WebElement web_element = browser.findElement(xpath);
 			if(web_element == null) {
 				continue;
 			}
-			Dimension element_size = web_element.getSize();
-			Point element_location = web_element.getLocation();
-
-			//check if element is visible in pane and if not then continue to next element xpath
-			if( !web_element.isDisplayed()
-					|| !hasWidthAndHeight(element_size)
-					|| doesElementHaveNegativePosition(element_location)
-					|| isStructureTag(web_element.getTagName())
-					|| BrowserUtils.isHidden(web_element)){
-				continue;
-			}
-			
-			String css_selector = generateCssSelectorFromXpath(xpath);
-			ElementClassification classification = null;
-			
-			/*
-			List<String> children = getChildElements(xpath, xpaths);
-			
-			if(children.isEmpty()) {
-				classification = ElementClassification.LEAF;
-			}
-			else {
-				classification = ElementClassification.ANCESTOR;
-			}
-			*/
-			classification = ElementClassification.UNKNOWN;
-			
-			//load json element
-			Elements elements = Xsoup.compile(xpath).evaluate(html_doc).getElements();
-			if(elements.size() == 0) {
-				log.warn("NO ELEMENTS WITH XPATH FOUND :: "+xpath);
-			}
-							
-			Element element = elements.first();
-			if(isImageElement(web_element)) {
-				ElementState element_state = buildImageElementState(xpath, 
+			try {
+				Dimension element_size = web_element.getSize();
+				Point element_location = web_element.getLocation();
+	
+				//check if element is visible in pane and if not then continue to next element xpath
+				 if( !web_element.isDisplayed()
+						|| !hasWidthAndHeight(element_size)
+						|| doesElementHaveNegativePosition(element_location)
+						|| isStructureTag(web_element.getTagName())
+						|| BrowserUtils.isHidden(web_element)){
+					continue;
+				}
+				
+				String css_selector = generateCssSelectorFromXpath(xpath);
+				ElementClassification classification = null;
+				
+				/*
+				List<String> children = getChildElements(xpath, xpaths);
+				
+				if(children.isEmpty()) {
+					classification = ElementClassification.LEAF;
+				}
+				else {
+					classification = ElementClassification.ANCESTOR;
+				}
+				*/
+				classification = ElementClassification.UNKNOWN;
+				
+				//load json element
+				Elements elements = Xsoup.compile(xpath).evaluate(html_doc).getElements();
+				if(elements.size() == 0) {
+					log.warn("NO ELEMENTS WITH XPATH FOUND :: "+xpath);
+				}
+								
+				Element element = elements.first();
+				if(isImageElement(web_element)) {
+					ElementState element_state = buildImageElementState(xpath, 
+																	   new HashMap<>(), 
+																	   element, 
+																	   web_element, 
+																	   classification, 
+																	   new HashMap<>(), 
+																	   null,
+																	   css_selector,
+																	   null,
+																	   null,
+																	   null,
+																	   null,
+																	   null);
+					
+					ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
+					if(element_record == null) {
+						element_state = enrichElementState(browser, web_element, element_state, full_page_screenshot, host);
+						element_state = enrichImageElement(element_state, page_state, browser, host);
+						element_record = element_state_service.save(domain_audit_id, element_state);
+					}
+					
+					visited_elements.add(element_record);
+				}
+				else {
+					ElementState element_state = buildElementState(xpath, 
 																   new HashMap<>(), 
 																   element, 
 																   web_element, 
 																   classification, 
 																   new HashMap<>(), 
 																   null,
-																   css_selector,
-																   null,
-																   null,
-																   null,
-																   null,
-																   null);
-				
-				ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
-				if(element_record == null) {
-					element_state = enrichElementState(browser, web_element, element_state, full_page_screenshot, host);
-					element_state = enrichImageElement(element_state, page_state, browser, host);
-					element_record = element_state_service.save(domain_audit_id, element_state);
+																   css_selector);
+					
+					ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
+					if(element_record == null) {
+						element_state = enrichElementState(browser, web_element, element_state, full_page_screenshot, host);
+						element_state = ElementStateUtils.enrichBackgroundColor(element_state);
+						element_record = element_state_service.save(domain_audit_id, element_state);
+					}
+					
+					visited_elements.add(element_record);
 				}
-				
-				visited_elements.add(element_record);
-			}
-			else {
-				ElementState element_state = buildElementState(xpath, 
-															   new HashMap<>(), 
-															   element, 
-															   web_element, 
-															   classification, 
-															   new HashMap<>(), 
-															   null,
-															   css_selector);
-				
-				ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
-				if(element_record == null) {
-					element_state = enrichElementState(browser, web_element, element_state, full_page_screenshot, host);
-					element_state = ElementStateUtils.enrichBackgroundColor(element_state);
-					element_record = element_state_service.save(domain_audit_id, element_state);
-				}
-				
-				visited_elements.add(element_record);
+			}catch(Exception e) {
+				errored_xpaths.add(xpath);
+				e.printStackTrace();
 			}
 		}
-		
 
 		return visited_elements;
 	}

@@ -276,16 +276,24 @@ public class AuditController {
 					log.warn("Extracting element states...");
 					
 					List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state_record.getSrc());
+					
 					log.warn("generated " + xpaths.size() +" xpaths");
+					
 					List<ElementState> element_states = browser_service.getDomElementStates(	page_state_record, 
 																								xpaths,
 																								browser,
 																								domain_url_msg.getDomainAuditRecordId());
+					
+					log.warn("Found "+element_states.size()+" element states");
 					String host = url.getHost();
-	
+					log.warn("Enriching element states");
 					element_states = browser_service.enrichElementStates(element_states, page_state_record, browser, host);
 					element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
-					page_state_record.setElements(element_states);
+					
+					List<Long> element_ids = element_states.stream().map(x -> x.getId()).collect(Collectors.toList());
+					page_state_service.addAllElements(page_state.getId(), element_ids);
+					
+					//page_state_record.setElements(element_states);
 					audit_record_service.addPageToAuditRecord(domain_url_msg.getDomainAuditRecordId(), page_state_record.getId());
 				}
 	
@@ -330,6 +338,7 @@ public class AuditController {
 				log.warn("Publishing to verified journey topic = "+journey_msg_str);
 
 				pubSubJourneyVerifiedPublisherImpl.publish(journey_msg_str);
+				log.warn("Successfully published event to verified journey topic");
 				return new ResponseEntity<String>("Successfully sent message to verifed journey topic", HttpStatus.OK);	
 
 		    }
