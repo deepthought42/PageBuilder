@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.looksee.pageBuilder.models.ElementState;
-import com.looksee.pageBuilder.models.PageAuditRecord;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.Screenshot;
 import com.looksee.pageBuilder.models.enums.AuditName;

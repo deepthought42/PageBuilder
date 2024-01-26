@@ -1186,6 +1186,6 @@ public class BrowserUtils {
 	 */
 	public static boolean isHidden(WebElement web_element) {
 		Rectangle rect = web_element.getRect();
-		return rect.getX()==0 && rect.getY()==0 && rect.getWidth()==0 && rect.getHeight()==0;
+		return rect.getX()<=0 && rect.getY()<=0 && rect.getWidth()<=0 && rect.getHeight()<=0;
 	}
 }

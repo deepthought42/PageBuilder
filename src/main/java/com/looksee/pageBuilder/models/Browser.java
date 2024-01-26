@@ -29,6 +29,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
@@ -160,7 +161,6 @@ public class Browser {
 		
 		try {
 			waitForPageToLoad();
-			TimingUtils.pauseThread(3000L);
 		}catch(Exception e) {
 			/*
 			e.printStackTrace();
@@ -413,6 +413,7 @@ public class Browser {
         return screenshot.getImage();
 	}
 	
+	@Retryable
 	public BufferedImage getFullPageScreenshotShutterbug() throws IOException {
 		//NOTE: best for CHROME
 	    return Shutterbug.shootPage(driver, Capture.FULL, 1000, true).getImage();
