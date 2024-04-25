@@ -5,6 +5,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
+import com.looksee.pageBuilder.models.journeys.LandingStep;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.enums.Action;

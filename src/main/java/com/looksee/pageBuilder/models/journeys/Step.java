@@ -6,6 +6,8 @@ import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
+import com.looksee.pageBuilder.models.journeys.Step;
 import com.looksee.pageBuilder.models.LookseeObject;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.enums.JourneyStatus;

@@ -9,7 +9,7 @@ import lombok.Setter;
 /**
  * 
  */
-public class VerifiedJourneyMessage extends Message {
+public class VerifiedJourneyMessage extends DomainAuditMessage {
 
 	@Getter
 	@Setter

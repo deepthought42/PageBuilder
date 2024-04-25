@@ -7,6 +7,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.looksee.pageBuilder.models.enums.JourneyStatus;
+import com.looksee.pageBuilder.models.journeys.Redirect;
+import com.looksee.pageBuilder.models.journeys.Step;
 import com.looksee.pageBuilder.models.enums.StepType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

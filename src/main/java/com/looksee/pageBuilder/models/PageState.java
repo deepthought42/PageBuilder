@@ -305,34 +305,7 @@ public class PageState extends LookseeObject {
 		
 		return url;
 	}
-	
-	/**
-	 * 
-	 * @param buff_img
-	 * @return
-	 * @throws IOException
-	 */
-	public static String getFileChecksum(BufferedImage buff_img) throws IOException {
-		assert buff_img != null;
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		boolean foundWriter = ImageIO.write(buff_img, "png", baos);
-		assert foundWriter; // Not sure about this... with jpg it may work but
-							// other formats ?
-		// Get file input stream for reading the file content
-		byte[] data = baos.toByteArray();
-		try {
-			MessageDigest sha = MessageDigest.getInstance("SHA-256");
-			sha.update(data);
-			byte[] thedigest = sha.digest(data);
-			return Hex.encodeHexString(thedigest);
-		} catch (NoSuchAlgorithmException e) {
-			log.error("Error generating checksum of buffered image");
-		}
-		return "";
 
-	}
-	
 	/**
 	 * {@inheritDoc}
 	 * @throws IOException
@@ -341,7 +314,8 @@ public class PageState extends LookseeObject {
 	 * @pre page != null
 	 */
 	public String generateKey() {
-		return "pagestate" + org.apache.commons.codec.digest.DigestUtils.sha256Hex( this.getUrl() + BrowserService.generalizeSrc(BrowserService.extractBody(this.getSrc()) ));
+		String gen_src = BrowserService.generalizeSrc(BrowserService.extractBody(this.getSrc()) );
+		return "pagestate" + org.apache.commons.codec.digest.DigestUtils.sha256Hex( getUrl() + gen_src +getBrowser());
 	}
 
 	public String getSrc() {

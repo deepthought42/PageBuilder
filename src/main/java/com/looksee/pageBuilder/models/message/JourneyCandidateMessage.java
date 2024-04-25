@@ -11,8 +11,9 @@ import lombok.Setter;
 /**
  * 
  */
-public class JourneyCandidateMessage extends Message {
+public class JourneyCandidateMessage extends DomainAuditMessage {
 
+	private long map_id;
 	private Journey journey;
 	private BrowserType browser;
 
@@ -25,7 +26,8 @@ public class JourneyCandidateMessage extends Message {
 	public JourneyCandidateMessage(Journey journey, 
 								   BrowserType browser_type, 
 								   long account_id, 
-								   long audit_record_id)
+								   long audit_record_id, 
+								   long map_id)
 	{
 		super(account_id);
 		setJourney(journey);
@@ -34,7 +36,7 @@ public class JourneyCandidateMessage extends Message {
 	}
 
 	public JourneyCandidateMessage clone(){
-		return new JourneyCandidateMessage(null, 
+		return new JourneyCandidateMessage(getJourney(), 
 								  getBrowser(), 
 								  getAccountId(), 
 								  getAuditRecordId());
@@ -54,6 +56,14 @@ public class JourneyCandidateMessage extends Message {
 
 	public void setJourney(Journey journey) {
 		this.journey = journey;
+	}
+
+	public long getMapId() {
+		return map_id;
+	}
+
+	public void setMapId(long map_id) {
+		this.map_id = map_id;
 	}
 	
 }

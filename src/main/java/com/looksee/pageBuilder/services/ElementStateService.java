@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.looksee.models.rules.Rule;
@@ -17,6 +18,9 @@ import com.looksee.pageBuilder.models.Element;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 
+/**
+ * 
+ */
 @Service
 public class ElementStateService {
 	@SuppressWarnings("unused")
@@ -35,12 +39,26 @@ public class ElementStateService {
 	 * 
 	 * @pre element != null
 	 */
+	@Deprecated
 	public ElementState save(ElementState element) {
 		assert element != null;
 
 		ElementState element_record = element_repo.findByKey(element.getKey());
 		if(element_record == null) {
 			return element_repo.save(element);
+		}
+		
+		return element_record;
+	}
+	
+	@Retryable
+	public ElementState save(long page_state_id, ElementState element) {
+		assert element != null;
+
+		ElementState element_record = element_repo.findByPageStateAndKey(page_state_id, element.getKey());
+		if(element_record == null) {
+			element_record = element_repo.save(element);
+			element_repo.addElement(page_state_id, element_record.getId());
 		}
 		
 		return element_record;
@@ -185,7 +203,7 @@ public class ElementStateService {
 
 	public List<ElementState> saveAll(List<ElementState> element_states, long page_state_id) {
 		return element_states.parallelStream()
-									   .map(element -> save(element))
+									   .map(element -> save(page_state_id, element))
 									   .collect(Collectors.toList());
 	}
 
@@ -201,5 +219,9 @@ public class ElementStateService {
 
 	public List<ElementState> getElements(Set<String> existing_keys) {
 		return element_repo.getElements(existing_keys);
+	}
+
+	public ElementState findByDomainAuditAndKey(long domain_audit_id, ElementState element) throws Exception {
+		return element_repo.findByDomainAuditAndKey(domain_audit_id, element.getKey());
 	}
 }

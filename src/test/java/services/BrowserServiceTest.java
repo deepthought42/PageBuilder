@@ -10,6 +10,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
@@ -33,6 +35,21 @@ public class BrowserServiceTest {
 		
 		html = BrowserService.removeComments(html);
 		System.out.println("html :: "+html);
+	}
+	
+	@Test
+	public void verifyXpathUniquification() {
+		String html = "<html><head></head><body><div><!-- foo --><p>bar<!-- baz --></div><!--qux--></body></html>";
+		Document html_doc = Jsoup.parse(html);
+
+		String xpath = "//body";
+		String new_xpath = BrowserService.uniqifyXpath(xpath, html_doc);
+		assert("//body".equals(new_xpath));
+		
+		String xpath1 = "//body/div[1]";
+		String new_xpath1 = BrowserService.uniqifyXpath(xpath1, html_doc);
+		assert("//div[1]".equals(new_xpath1));
+
 	}
 	
 	//@Test

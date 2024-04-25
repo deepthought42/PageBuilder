@@ -1,7 +1,7 @@
 package com.looksee.pageBuilder.models.message;
 
 import com.looksee.pageBuilder.models.enums.BrowserType;
-import com.looksee.pageBuilder.models.enums.PathStatus;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
 import com.looksee.pageBuilder.models.journeys.Journey;
 
 import lombok.Getter;
@@ -14,7 +14,7 @@ import lombok.Setter;
 public class JourneyMessage extends Message {
 
 	private Journey journey;
-	private PathStatus status;
+	private JourneyStatus status;
 	private BrowserType browser;
 
 	@Getter
@@ -42,11 +42,11 @@ public class JourneyMessage extends Message {
 								  getAuditRecordId());
 	}
 
-	public PathStatus getStatus() {
+	public JourneyStatus getStatus() {
 		return status;
 	}
 
-	private void setStatus(PathStatus status) {
+	private void setStatus(JourneyStatus status) {
 		this.status = status;
 	}
 
@@ -58,11 +58,11 @@ public class JourneyMessage extends Message {
 		this.browser = browser;
 	}
 
-	public Journey getJourney() {
-		return journey;
-	}
-
 	public void setJourney(Journey journey) {
 		this.journey = journey;
+	}
+	
+	public Journey getJourney() {
+		return this.journey;
 	}
 }

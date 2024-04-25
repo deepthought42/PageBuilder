@@ -33,6 +33,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -231,8 +232,7 @@ public class BrowserUtils {
 	 * @return true if it contains a valid host format, otherwise false
 	 */
 	public static boolean containsHost(String link_url) {
-
-		String host_pattern = "([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(com|app|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|website|space|ca|us|co))(:[0-9]+)*";
+		String host_pattern = "([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(com|app|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|website|space|ca|us|co|uk|cc|es|tn))(:[0-9]+)*";
 		Pattern pattern = Pattern.compile(host_pattern);
         Matcher matcher = pattern.matcher(link_url);
 
@@ -1150,7 +1150,7 @@ public class BrowserUtils {
 			BufferedImage screenshot = browser.getViewportScreenshot();
 			
 			//calculate screenshot checksum
-			new_checksum = PageState.getFileChecksum(screenshot);
+			new_checksum = ImageUtils.getChecksum(screenshot);
 		
 			transition_detected = !new_checksum.equals(last_checksum);
 
@@ -1175,5 +1175,17 @@ public class BrowserUtils {
 		}
 
 		return null;
+	}
+	
+	/**
+	 * Checks if a {@link WebElement element} is currently hidden
+	 * 
+	 * @param web_element {@link WebElement element}
+	 * 
+	 * @return returns true if it is hidden, otherwise returns false
+	 */
+	public static boolean isHidden(WebElement web_element) {
+		Rectangle rect = web_element.getRect();
+		return rect.getX()<=0 && rect.getY()<=0 && rect.getWidth()<=0 && rect.getHeight()<=0;
 	}
 }

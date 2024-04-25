@@ -29,6 +29,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
@@ -173,6 +174,7 @@ public class Browser {
 			}
 			*/
 		}
+		TimingUtils.pauseThread(5000L);
 	}
 
 	/**
@@ -182,6 +184,8 @@ public class Browser {
 	 * @return
 	 * 
 	 * @precondition src != null
+	 * 
+	 * @Version - 9/18/2023
 	 */
 	public static String cleanSrc(String src) {
 		Document html_doc = Jsoup.parse(src);
@@ -201,9 +205,12 @@ public class Browser {
 		}
 		
 		String html = html_doc.html();
+		html = html.replace("  ", " ");
+		html = html.replace("\n", "");
+		html = html.replace("\r", "");
+		html = html.replace("\t", "");
+
 		return html.replace(" style=\"\"", "");
-		//html_doc.select("link,script,style").remove();
-		//return html_doc.html();
 	}
 	
 	/**
@@ -406,6 +413,7 @@ public class Browser {
         return screenshot.getImage();
 	}
 	
+	@Retryable
 	public BufferedImage getFullPageScreenshotShutterbug() throws IOException {
 		//NOTE: best for CHROME
 	    return Shutterbug.shootPage(driver, Capture.FULL, 1000, true).getImage();
@@ -1051,7 +1059,6 @@ public class Browser {
 		Object offset_obj= ((JavascriptExecutor)driver).executeScript("return window.pageXOffset+','+window.pageYOffset;");
 		if(offset_obj instanceof String) {
 			String offset_str = (String)offset_obj;
-			log.warn("combined offset = "+offset_str);
 			String[] coord = offset_str.split(",");
 			x_offset = Integer.parseInt(coord[0]);
 			y_offset = Integer.parseInt(coord[1]);
@@ -1364,5 +1371,16 @@ public class Browser {
 
 	public WebElement findElement(String xpath) throws WebDriverException{
 		return getDriver().findElement(By.xpath(xpath));
+	}
+
+	/**
+	 * 
+	 * @param element
+	 */
+	public void scrollToElementCentered(WebElement element) 
+	{ 
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
+		
+		getViewportScrollOffset();
 	}
 }

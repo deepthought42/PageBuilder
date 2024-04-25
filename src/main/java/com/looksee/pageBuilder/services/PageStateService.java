@@ -11,13 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.looksee.pageBuilder.models.ElementState;
-import com.looksee.pageBuilder.models.PageAuditRecord;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.Screenshot;
 import com.looksee.pageBuilder.models.enums.AuditName;
 import com.looksee.pageBuilder.models.enums.ElementClassification;
 import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 import com.looksee.pageBuilder.models.repository.PageStateRepository;
+
+import io.github.resilience4j.retry.annotation.Retry;
+
 import com.looksee.pageBuilder.models.Audit;
 
 
@@ -45,6 +47,7 @@ public class PageStateService {
 	 * 
 	 * @pre page_state != null
 	 */
+	@Deprecated
 	public PageState save(PageState page_state) throws Exception {
 		assert page_state != null;
 		
@@ -59,6 +62,33 @@ public class PageStateService {
 		return page_state_record;
 	}
 	
+	/**
+	 * Save a {@link PageState} object and its associated objects
+	 * @param page_state
+	 * @return
+	 * @throws Exception 
+	 * 
+	 * @pre page_state != null
+	 */
+	@Retry(name = "neoforj")
+	public PageState save(long audit_record_id, PageState page_state) throws Exception {
+		assert page_state != null;
+		
+		PageState page_state_record = page_state_repo.findPageWithKey(audit_record_id, page_state.getKey());		
+		if(page_state_record == null) {
+			log.warn("page state wasn't found in database. Saving new page state to neo4j");
+			
+			return page_state_repo.save(page_state);
+		}
+
+		return page_state_record;
+	}
+	
+	/**
+	 * 
+	 * @param page_key
+	 * @return
+	 */
 	public PageState findByKey(String page_key) {
 		PageState page_state = page_state_repo.findByKey(page_key);
 		if(page_state != null){
@@ -159,16 +189,6 @@ public class PageStateService {
 
 	public Optional<ElementState> getElementState(long page_id, long element_id) {
 		return element_state_repo.getElementState(page_id, element_id);
-	}
-
-	/**
-	 * Retrieves an {@link AuditRecord} for the page with the given id
-	 * @param id
-	 * @return
-	 */
-	public PageAuditRecord getAuditRecord(long id) {
-		
-		return page_state_repo.getAuditRecord(id);
 	}
 
 	public Optional<PageState> findById(long page_id) {

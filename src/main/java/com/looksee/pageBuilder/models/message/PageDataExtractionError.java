@@ -6,6 +6,7 @@ import lombok.Setter;
 public class PageDataExtractionError extends Message {
 	private String url;
 	private String errorMessage;
+	private long audit_record_id;
 	
 	@Getter
 	@Setter
@@ -35,6 +36,14 @@ public class PageDataExtractionError extends Message {
 
 	public void setErrorMessage(String error_message) {
 		this.errorMessage = error_message;
+	}
+
+	public long getAuditRecordId() {
+		return audit_record_id;
+	}
+
+	public void setAuditRecordId(long audit_record_id) {
+		this.audit_record_id = audit_record_id;
 	}
 
 }
