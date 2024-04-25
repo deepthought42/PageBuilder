@@ -5,16 +5,14 @@ public class PageBuiltMessage extends Message{
 	private long pageAuditRecordId;
 	
 	public PageBuiltMessage() {
-		super(-1, -1, -1);
+		super(-1);
 	}
 	
-	public PageBuiltMessage(long account_id, 
-							long domain_audit_id,
-							long domain_id,
+	public PageBuiltMessage(long account_id,
 							long page_id, 
 							long page_audit_record_id) 
 	{
-		super(account_id, domain_audit_id, domain_id);
+		super(account_id);
 		setPageId(page_id);
 		setPageAuditRecordId(page_audit_record_id);
 	}

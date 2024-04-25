@@ -1,7 +1,5 @@
 package com.looksee.pageBuilder;
 
-
-import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,24 +23,24 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.looksee.pageBuilder.models.journeys.DomainMap;
-import com.looksee.pageBuilder.models.journeys.Journey;
-import com.looksee.pageBuilder.models.journeys.LandingStep;
-import com.looksee.pageBuilder.gcp.PubSubPageCreatedPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubErrorPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubJourneyVerifiedPublisherImpl;
+import com.looksee.pageBuilder.gcp.PubSubPageCreatedPublisherImpl;
 import com.looksee.pageBuilder.mapper.Body;
 import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
+import com.looksee.pageBuilder.models.enums.AuditLevel;
 import com.looksee.pageBuilder.models.enums.BrowserEnvironment;
 import com.looksee.pageBuilder.models.enums.BrowserType;
 import com.looksee.pageBuilder.models.enums.JourneyStatus;
-import com.looksee.pageBuilder.models.enums.PathStatus;
+import com.looksee.pageBuilder.models.journeys.DomainMap;
+import com.looksee.pageBuilder.models.journeys.Journey;
+import com.looksee.pageBuilder.models.journeys.LandingStep;
 import com.looksee.pageBuilder.models.journeys.Step;
+import com.looksee.pageBuilder.models.message.AuditStartMessage;
 import com.looksee.pageBuilder.models.message.PageBuiltMessage;
 import com.looksee.pageBuilder.models.message.PageDataExtractionError;
-import com.looksee.pageBuilder.models.message.UrlMessage;
 import com.looksee.pageBuilder.models.message.VerifiedJourneyMessage;
 import com.looksee.pageBuilder.services.AuditRecordService;
 import com.looksee.pageBuilder.services.BrowserService;
@@ -53,8 +51,6 @@ import com.looksee.pageBuilder.services.PageStateService;
 import com.looksee.pageBuilder.services.StepService;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ElementStateUtils;
-import com.looksee.utils.ImageUtils;
-import com.looksee.utils.TimingUtils;
 
 
 /**
@@ -103,7 +99,7 @@ public class AuditController {
 		String data = message.getData();
 	    String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
 	    ObjectMapper input_mapper = new ObjectMapper();
-        UrlMessage url_msg = input_mapper.readValue(target, UrlMessage.class);
+        AuditStartMessage url_msg = input_mapper.readValue(target, AuditStartMessage.class);
         
 		URL url = new URL(BrowserUtils.sanitizeUserUrl(url_msg.getUrl()));
 		
@@ -119,11 +115,10 @@ public class AuditController {
 			if(http_status == 404 || http_status == 408) {
 				log.warn("Recieved " + http_status + "status for link :: "+url_msg.getUrl());
 				//send message to audit manager letting it know that an error occurred
-				PageDataExtractionError page_extraction_err = new PageDataExtractionError(url_msg.getDomainId(), 
-																						url_msg.getAccountId(), 
-																						url_msg.getDomainAuditRecordId(), 
-																						url_msg.getUrl().toString(), 
-																						"Received "+http_status+" status while building page state "+url_msg.getUrl());
+				PageDataExtractionError page_extraction_err = new PageDataExtractionError(url_msg.getAccountId(), 
+																						  url_msg.getAuditId(), 
+																						  url_msg.getUrl().toString(), 
+																						  "Received "+http_status+" status while building page state "+url_msg.getUrl());
 
 				String error_json = mapper.writeValueAsString(page_extraction_err);
 				pubSubErrorPublisherImpl.publish(error_json);
@@ -138,7 +133,7 @@ public class AuditController {
 			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
 			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS
 			
-			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getDomainAuditRecordId(), 
+			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getAuditId(), 
 																				page_state.getKey());
 			
 			if(page_state_record == null 
@@ -165,19 +160,16 @@ public class AuditController {
 
 			//if domain audit id is less than zero then this is a single page audit
 			//send PageBuilt message to pub/sub
-		    PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
-														    		url_msg.getDomainAuditRecordId(),
-														    		url_msg.getDomainId(), 
-														    		page_state.getId(),
-														    		url_msg.getPageAuditRecordId());
-		    
+			PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
+																	page_state.getId(),
+																	url_msg.getAuditId());
+
 		    String page_built_str = mapper.writeValueAsString(page_built_msg);
 		    pubSubPageCreatedPublisherImpl.publish(page_built_str);
 
-		    if(url_msg.getDomainAuditRecordId() >= 0) {
-				
+		    if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
 				List<Step> steps = new ArrayList<>();
-				Step step = new LandingStep(page_state);
+				Step step = new LandingStep(page_state, JourneyStatus.VERIFIED);
 				step = step_service.save(step);
 				steps.add(step);
 				Journey journey = new Journey(steps, JourneyStatus.VERIFIED);
@@ -186,22 +178,20 @@ public class AuditController {
 				journey.setId(saved_journey.getId());
 				
 				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map				
-				DomainMap domain_map = domain_map_service.findByDomainAuditId(url_msg.getDomainAuditRecordId());
+				DomainMap domain_map = domain_map_service.findByDomainAuditId(url_msg.getAuditId());
 				if(domain_map == null) {
 					domain_map = domain_map_service.save(new DomainMap());
-					log.warn("adding domain map to audit record = " + url_msg.getDomainAuditRecordId());
+					log.warn("adding domain map to audit record = " + url_msg.getAuditId());
 
-					audit_record_service.addDomainMap(url_msg.getDomainAuditRecordId(), domain_map.getId());
+					audit_record_service.addDomainMap(url_msg.getAuditId(), domain_map.getId());
 				}
 				
 				domain_map_service.addJourneyToDomainMap(journey.getId(), domain_map.getId());
 				
 				VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey, 
-																				PathStatus.READY, 
 																				BrowserType.CHROME, 
-																				url_msg.getDomainId(), 
 																				url_msg.getAccountId(), 
-																				url_msg.getDomainAuditRecordId());
+																				url_msg.getAuditId());
 				log.warn("journey steps = "+ journey.getSteps());
 				String journey_msg_str = mapper.writeValueAsString(journey_msg);
 				log.warn("Publishing to verified journey topic = "+journey_msg_str);
@@ -212,15 +202,13 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent message to verifed journey topic", HttpStatus.OK);
 		}
 		catch(Exception e) {
-			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getDomainId(), 
-																						url_msg.getAccountId(), 
-																						url_msg.getDomainAuditRecordId(), 
+			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getAccountId(), 
+																						url_msg.getAuditId(), 
 																						url_msg.getUrl().toString(), 
 																						"An exception occurred while building page state "+url_msg.getUrl()+".\n"+e.getMessage());
 
 			String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
 			pubSubErrorPublisherImpl.publish(element_extraction_str);
-		    
 			log.error("An exception occurred that bubbled up to the page state builder : "+e.getMessage());
 			e.printStackTrace();
 			

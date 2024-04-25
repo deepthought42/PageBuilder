@@ -1,16 +1,23 @@
 package com.looksee.pageBuilder.models.message;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class PageDataExtractionError extends Message {
 	private String url;
 	private String errorMessage;
 	
-	public PageDataExtractionError(long domainId, 
-								   long accountId, 
+	@Getter
+	@Setter
+	private long auditRecordId;
+
+	public PageDataExtractionError(long accountId, 
 								   long auditRecordId, 
 								   String url, 
 								   String error_message) {
-		super(domainId, accountId, auditRecordId);
+		super(accountId);
 		setUrl(url);
+		setAuditRecordId(auditRecordId);
 		setErrorMessage(error_message);
 	}
 

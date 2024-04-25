@@ -9,16 +9,16 @@ public class PageAuditMessage extends Message {
 	private long page_id;
 	
 	public PageAuditMessage() {
-		super(-1, -1, -1);
+		super(-1);
 	}
 	
 	public PageAuditMessage(long account_id,
-							long domain_audit_id,
 							long page_id,
-							long page_audit_id,
-							long domain_id
+							long page_audit_id
 	) {
-		super(account_id, domain_audit_id, domain_id);
+		super(account_id);
+		setPageAuditId(page_audit_id);
+		setPageId(page_id);
 	}
 
 	public long getPageAuditId() {

@@ -4,37 +4,42 @@ import com.looksee.pageBuilder.models.enums.BrowserType;
 import com.looksee.pageBuilder.models.enums.PathStatus;
 import com.looksee.pageBuilder.models.journeys.Journey;
 
+import lombok.Getter;
+import lombok.Setter;
+
 
 /**
  * 
  */
 public class JourneyMessage extends Message {
 
-	//private List<Step> steps;
 	private Journey journey;
 	private PathStatus status;
 	private BrowserType browser;
-	
+
+	@Getter
+	@Setter
+	private long auditRecordId;
+
 	public JourneyMessage(Journey journey,
 					   PathStatus status, 
 					   BrowserType browser_type, 
-					   long domain_id, 
 					   long account_id, 
 					   long audit_record_id)
 	{
-		super(domain_id, account_id, audit_record_id);
+		super(account_id);
 		setJourney(journey);
 		setStatus(status);
 		setBrowser(browser_type);
+		setAuditRecordId(audit_record_id);
 	}
 	
 	public JourneyMessage clone(){
 		return new JourneyMessage(journey.clone(),
 								  getStatus(), 
-								  getBrowser(), 
-								  getDomainId(), 
+								  getBrowser(),
 								  getAccountId(),
-								  getDomainAuditRecordId());
+								  getAuditRecordId());
 	}
 
 	public PathStatus getStatus() {

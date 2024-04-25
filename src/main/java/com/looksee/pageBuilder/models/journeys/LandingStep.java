@@ -1,16 +1,15 @@
 package com.looksee.pageBuilder.models.journeys;
 
 
-import com.looksee.pageBuilder.models.enums.Action;
-import com.looksee.pageBuilder.models.enums.StepType;
-
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
+import com.looksee.pageBuilder.models.enums.Action;
+import com.looksee.pageBuilder.models.enums.JourneyStatus;
+import com.looksee.pageBuilder.models.enums.StepType;
 
 /**
  * A Step is the increment of work that start with a {@link PageState} contians an {@link ElementState} 
@@ -21,30 +20,23 @@ import com.looksee.pageBuilder.models.PageState;
 @Node
 public class LandingStep extends Step {
 	
-	@Relationship(type = "STARTS_WITH")
-	private PageState startPage;
-	
 	public LandingStep() {
 		super();
 	}
 	
-	public LandingStep(PageState start_page) 
+	public LandingStep(PageState start_page, JourneyStatus status) 
 	{
 		setStartPage(start_page);
+		setStatus(status);
+		if(JourneyStatus.CANDIDATE.equals(status)) {
+			setCandidateKey(generateCandidateKey());
+		}
 		setKey(generateKey());
-	}
-	
-	public PageState getStartPage() {
-		return startPage;
-	}
-
-	public void setStartPage(PageState startPage) {
-		this.startPage = startPage;
 	}
 
 	@Override
 	public LandingStep clone() {
-		return new LandingStep(getStartPage());
+		return new LandingStep(getStartPage(), getStatus());
 	}
 	
 	@Override
@@ -52,6 +44,10 @@ public class LandingStep extends Step {
 		return "landingstep"+getStartPage().getId();
 	}
 
+	@Override
+	public String generateCandidateKey() {
+		return generateKey();
+	}
 	
 	@Override
 	public String toString() {

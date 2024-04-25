@@ -10,7 +10,7 @@ import lombok.Setter;
  * Message for different audit actions to perform and which audit types to perform them for.
  * 
  */
-public class UrlMessage extends Message{
+public class AuditStartMessage extends Message{
 	private String url;
 	private BrowserType browser;
 	private long audit_id;
@@ -19,13 +19,13 @@ public class UrlMessage extends Message{
 	@Getter
 	private AuditLevel type;
 
-	public UrlMessage() {}
+	public AuditStartMessage() {}
 	
-	public UrlMessage(String url, 
-					  BrowserType browser,
-					  long audit_id,
-					  AuditLevel type,
-					  long account_id)
+	public AuditStartMessage(String url, 
+							BrowserType browser,
+							long audit_id,
+							AuditLevel type,
+							long account_id)
 	{
 		setUrl(url);
 		setBrowser(browser);

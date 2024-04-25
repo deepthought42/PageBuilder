@@ -16,10 +16,10 @@ public class DiscardedJourneyMessage extends Message {
 								   long domainId, 
 								   long accountId, 
 								   long auditRecordId) {
+		super(accountId);
 		setJourney(journey);
 		setBrowserType(browserType);
 		setDomainId(domainId);
-		setAccountId(accountId);
 		setAuditRecordId(auditRecordId);
 	}
 

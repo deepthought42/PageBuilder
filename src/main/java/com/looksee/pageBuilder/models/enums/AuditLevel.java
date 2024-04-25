@@ -1,14 +1,15 @@
 package com.looksee.pageBuilder.models.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.looksee.pageBuilder.models.Audit;
 
 /**
  * Defines all levels of {@link Audit audits} that exist in the system
  */
 public enum AuditLevel {
-	PAGE("page"),
-	DOMAIN("domain"),
-	UNKNOWN("unknown");
+	PAGE("PAGE"),
+	DOMAIN("DOMAIN"),
+	UNKNOWN("UNKNOWN");
 	
 	private String shortName;
 

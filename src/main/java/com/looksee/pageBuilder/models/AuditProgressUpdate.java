@@ -20,10 +20,9 @@ public class AuditProgressUpdate extends Message {
 			double progress,
 			String message, 
 			AuditCategory category,
-			AuditLevel level, 
-			long domain_id
+			AuditLevel level
 	) {
-		super(account_id, audit_record_id, domain_id);
+		super(account_id);
 		setProgress(progress);
 		setMessage(message);
 		setCategory(category);

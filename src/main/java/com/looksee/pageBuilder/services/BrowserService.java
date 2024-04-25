@@ -1716,7 +1716,7 @@ public class BrowserService {
 																			screenshot_checksum, 
 																			BrowserType.create(browser.getBrowserName()));
 
-					log.warn("DONE extracting ELEMENT screenshot manually from full page = "+(System.currentTimeMillis()-manual_extraction_start));
+					log.debug("DONE extracting ELEMENT screenshot manually from full page = "+(System.currentTimeMillis()-manual_extraction_start));
 				}
 				catch(Exception e1){
 					e1.printStackTrace();
@@ -1733,7 +1733,7 @@ public class BrowserService {
 					element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
 					element_screenshot.flush();
 					
-					log.warn("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
+					log.debug("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
 				}
 				catch(Exception e1){
 					log.warn("execption occurred capturing element screenshot at "+web_element);
