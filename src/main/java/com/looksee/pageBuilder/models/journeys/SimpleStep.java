@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.looksee.pageBuilder.models.enums.JourneyStatus;
-import com.looksee.pageBuilder.models.journeys.SimpleStep;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.enums.Action;
@@ -27,9 +25,6 @@ import com.looksee.pageBuilder.models.enums.StepType;
 @JsonTypeName("SIMPLE")
 @Node
 public class SimpleStep extends Step {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(SimpleStep.class);
-	
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(SimpleStep.class);
 

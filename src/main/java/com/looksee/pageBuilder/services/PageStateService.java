@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.pageBuilder.models.Audit;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
 import com.looksee.pageBuilder.models.Screenshot;
@@ -19,8 +20,6 @@ import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 import com.looksee.pageBuilder.models.repository.PageStateRepository;
 
 import io.github.resilience4j.retry.annotation.Retry;
-
-import com.looksee.pageBuilder.models.Audit;
 
 
 
@@ -47,7 +46,6 @@ public class PageStateService {
 	 * 
 	 * @pre page_state != null
 	 */
-	@Deprecated
 	public PageState save(PageState page_state) throws Exception {
 		assert page_state != null;
 		
@@ -77,7 +75,6 @@ public class PageStateService {
 		PageState page_state_record = page_state_repo.findPageWithKey(audit_record_id, page_state.getKey());		
 		if(page_state_record == null) {
 			log.warn("page state wasn't found in database. Saving new page state to neo4j");
-			
 			return page_state_repo.save(page_state);
 		}
 

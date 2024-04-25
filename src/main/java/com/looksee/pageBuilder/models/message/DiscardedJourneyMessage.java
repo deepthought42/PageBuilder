@@ -3,7 +3,7 @@ package com.looksee.pageBuilder.models.message;
 import com.looksee.pageBuilder.models.enums.BrowserType;
 import com.looksee.pageBuilder.models.journeys.Journey;
 
-public class DiscardedJourneyMessage extends DomainAuditMessage {
+public class DiscardedJourneyMessage extends Message {
 
 	private Journey journey;
 	private BrowserType browserType;

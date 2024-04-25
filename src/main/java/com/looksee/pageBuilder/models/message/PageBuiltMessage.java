@@ -3,7 +3,7 @@ package com.looksee.pageBuilder.models.message;
 /**
  * Message used to indicate that a domain page has been built and data extracted
  */
-public class DomainPageBuiltMessage extends DomainAuditMessage{
+public class PageBuiltMessage extends Message{
 	private long pageId;
 	private long pageAuditRecordId;
 	
@@ -16,6 +16,7 @@ public class DomainPageBuiltMessage extends DomainAuditMessage{
 							long page_audit_record_id) 
 	{
 		super(account_id);
+		setPageAuditRecordId(page_audit_record_id);
 		setPageId(page_id);
 	}
 	

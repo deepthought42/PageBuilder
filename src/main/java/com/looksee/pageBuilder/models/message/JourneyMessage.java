@@ -22,7 +22,7 @@ public class JourneyMessage extends Message {
 	private long auditRecordId;
 
 	public JourneyMessage(Journey journey,
-					   PathStatus status, 
+					   JourneyStatus status, 
 					   BrowserType browser_type, 
 					   long account_id, 
 					   long audit_record_id)

@@ -326,7 +326,7 @@ public class BrowserService {
 	public static String generalizeSrc(String src) {
 		assert src != null;
 		
-		if(src.isBlank()) {
+		if(src.isEmpty()) {
 			return "";
 		}
 		
@@ -554,19 +554,7 @@ public class BrowserService {
 				}
 				
 				String css_selector = generateCssSelectorFromXpath(xpath);
-				ElementClassification classification = null;
-				
-				/*
-				List<String> children = getChildElements(xpath, xpaths);
-				
-				if(children.isEmpty()) {
-					classification = ElementClassification.LEAF;
-				}
-				else {
-					classification = ElementClassification.ANCESTOR;
-				}
-				*/
-				classification = ElementClassification.UNKNOWN;
+				ElementClassification classification = ElementClassification.UNKNOWN;
 				
 				//load json element
 				Elements elements = Xsoup.compile(xpath).evaluate(html_doc).getElements();
@@ -1902,7 +1890,7 @@ public class BrowserService {
 		
 		if(BrowserUtils.isLargerThanViewport(element_state, browser.getViewportSize().getWidth(), browser.getViewportSize().getHeight())) {
 			try {
-				element_screenshot = Browser.getElementScreenshot(element_state, page_screenshot);						
+				element_screenshot = Browser.getElementScreenshot(element_state, page_screenshot);
 				String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 				element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
 																		host, 
@@ -1920,47 +1908,14 @@ public class BrowserService {
 				element_screenshot = browser.getElementScreenshot(web_element);
 				String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 				
-				element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
+				element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
+																		host, 
+																		screenshot_checksum, 
+																		BrowserType.create(browser.getBrowserName()));
 				element_screenshot.flush();
 			}
 			catch(Exception e1){
-				/*
-				log.warn("execption occurred capturing element screenshot at "+web_element);
-				log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-				log.warn("element location = "+element_state.getXLocation()+" , "+element_state.getYLocation());
-				log.warn("element size = "+element_state.getWidth()+" , "+element_state.getHeight());
-
-			if(BrowserUtils.isLargerThanViewport(element, browser.getViewportSize().getWidth(), browser.getViewportSize().getHeight())) {
-				try {
-					long manual_extraction_start = System.currentTimeMillis();
-					element_screenshot = Browser.getElementScreenshot(element, full_page_screenshot);						
-					String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
-					element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
-																			host, 
-																			screenshot_checksum, 
-																			BrowserType.create(browser.getBrowserName()));
-
-					log.debug("DONE extracting ELEMENT screenshot manually from full page = "+(System.currentTimeMillis()-manual_extraction_start));
-				}
-				catch(Exception e1){
-					e1.printStackTrace();
-				}
-			}
-		}
-		
-		element_state.setScreenshotUrl(element_screenshot_url);
-		element_state.setAttributes(attributes);
-		element_state.setRenderedCssValues(rendered_css_props);
-
-					element_screenshot = browser.getElementScreenshot(web_element);
-					String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
-					
-					element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, host, screenshot_checksum, BrowserType.create(browser.getBrowserName()));
-					element_screenshot.flush();
-					
-					log.debug("DONE extracting element screenshot = "+(System.currentTimeMillis()-screenshot_extract_start));
-				}
-				catch(Exception e1){
+				/* 
 					log.warn("execption occurred capturing element screenshot at "+web_element);
 					log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 					log.warn("element location = "+element.getXLocation()+" , "+element.getYLocation());
@@ -1968,6 +1923,15 @@ public class BrowserService {
 					log.warn("viewport size = "+browser.getViewportSize().getWidth()+" , "+browser.getViewportSize().getHeight());
 					log.warn("viewport offsets = "+browser.getXScrollOffset()+" , "+browser.getYScrollOffset());
 					log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+				*/
+			}
+		}
+
+		element_state.setScreenshotUrl(element_screenshot_url);
+		element_state.setRenderedCssValues(rendered_css_props);
+		element_state.setAttributes(attributes);
+		return element_state;
+	}
 
 	/**
 	 * Enriches image {@link ImageElementState element with information about the image including logos, labels, faces, places, etc.
