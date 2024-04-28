@@ -11,9 +11,17 @@ import lombok.Setter;
  * 
  */
 public class UrlMessage extends Message{
+	@Getter
+	@Setter
 	private String url;
+
+	@Getter
+	@Setter
 	private BrowserType browser;
-	private long audit_id;
+
+	@Getter
+	@Setter
+	private long auditId;
 
 	@Setter
 	@Getter
@@ -32,29 +40,5 @@ public class UrlMessage extends Message{
 		setAuditId(audit_id);
 		setAccountId(account_id);
 		setType(type);
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public BrowserType getBrowser() {
-		return browser;
-	}
-
-	private void setBrowser(BrowserType browser) {
-		this.browser = browser;
-	}
-
-	public long getAuditId() {
-		return audit_id;
-	}
-
-	public void setAuditId(long auditId) {
-		this.audit_id = auditId;
 	}
 }
