@@ -4,13 +4,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.looksee.pageBuilder.models.ImageElementState;
 import com.looksee.pageBuilder.gcp.ImageSafeSearchAnnotation;
 import com.looksee.pageBuilder.models.enums.ElementClassification;
 
@@ -87,7 +87,6 @@ public class ImageElementState extends ElementState {
 							 int height,
 							 ElementClassification classification, 
 							 String outer_html, 
-							 boolean is_visible, 
 							 String css_selector,
 							 String foreground_color, 
 							 String background_color, 
@@ -111,7 +110,6 @@ public class ImageElementState extends ElementState {
 				height,
 				classification,
 				outer_html,
-				is_visible,
 				css_selector,
 				foreground_color,
 				background_color,
@@ -139,7 +137,6 @@ public class ImageElementState extends ElementState {
 			 int height,
 			 ElementClassification classification, 
 			 String outer_html, 
-			 boolean is_visible, 
 			 String css_selector,
 			 String foreground_color, 
 			 String background_color, 
@@ -162,7 +159,6 @@ public class ImageElementState extends ElementState {
 				height,
 				classification,
 				outer_html,
-				is_visible,
 				css_selector,
 				foreground_color,
 				background_color,

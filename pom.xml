@@ -251,13 +251,13 @@
 		<dependency>
 	    	<groupId>org.seleniumhq.selenium</groupId>
 	        <artifactId>selenium-java</artifactId>
-		    <version>4.9.1</version>
+	    	<version>${selenium-version}</version>
 	    </dependency>
 	    
 	    <dependency>
-		  <groupId>org.seleniumhq.selenium</groupId>
-		  <artifactId>selenium-http-jdk-client</artifactId>
-	        <version>${selenium-version}</version>
+		  	<groupId>org.seleniumhq.selenium</groupId>
+		  	<artifactId>selenium-http-jdk-client</artifactId>
+	    	<version>${selenium-version}</version>
 		</dependency>
 	    
 	    <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-api -->

@@ -27,12 +27,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -56,11 +50,16 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.UnreachableBrowserException;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
 import com.assertthat.selenium_shutterbug.core.Capture;
 import com.assertthat.selenium_shutterbug.core.Shutterbug;
+import com.google.api.gax.rpc.ApiException;
 import com.looksee.utils.ImageUtils;
-import com.looksee.utils.TimingUtils;
 
 import cz.vutbr.web.css.CSSFactory;
 import cz.vutbr.web.css.CombinedSelector;
@@ -174,7 +173,6 @@ public class Browser {
 			}
 			*/
 		}
-		TimingUtils.pauseThread(5000L);
 	}
 
 	/**
@@ -189,26 +187,18 @@ public class Browser {
 	 */
 	public static String cleanSrc(String src) {
 		Document html_doc = Jsoup.parse(src);
-		
-		for(Element element : html_doc.select("script")) {
-			element.remove();
-		}
-		
-		for(Element element : html_doc.select("style")) {
-			element.remove();
-		}
-		
-		for(Element element : html_doc.select("link")) {
-			if(element.attr("rel").contentEquals("text/css")) {
-				element.remove();
-			}
-		}
+		html_doc.select("script").remove();
+		html_doc.select("style").remove();
+		html_doc.select("link").remove();
 		
 		String html = html_doc.html();
-		html = html.replace("  ", " ");
-		html = html.replace("\n", "");
 		html = html.replace("\r", "");
-		html = html.replace("\t", "");
+		html = html.replace("\n", "");
+		html = html.replace("\t", " ");
+		html = html.replace("  ", " ");
+		html = html.replace("  ", " ");
+		html = html.replace("  ", " ");
+		
 
 		return html.replace(" style=\"\"", "");
 	}
@@ -322,12 +312,11 @@ public class Browser {
 					UnreachableBrowserException, 
 					WebDriverException
 	{
-		
 		ChromeOptions chrome_options = new ChromeOptions();
 		chrome_options.addArguments("user-agent=LookseeBot");
 		chrome_options.addArguments("window-size=1920,1080");
 		chrome_options.addArguments("--remote-allow-origins=*");
-
+		chrome_options.addArguments("--headless=new");
 
 		//options.setHeadless(true);
 
@@ -348,7 +337,7 @@ public class Browser {
 		}*/
 		log.debug("Requesting chrome remote driver from hub");
 		RemoteWebDriver driver = new RemoteWebDriver(hub_node_url, chrome_options);
-		driver.manage().window().maximize();
+		//driver.manage().window().maximize();
 
 		//driver.manage().window().setSize(new Dimension(1024, 768));
 	    //driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5L));
@@ -984,8 +973,8 @@ public class Browser {
 	public void scrollToElement(WebElement element) 
     {
 		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
-		long pause_time = Math.abs(this.getYScrollOffset() - element.getLocation().getY())/10;
-		TimingUtils.pauseThread(pause_time);
+		//long pause_time = Math.abs(this.getYScrollOffset() - element.getLocation().getY())/10;
+		//TimingUtils.pauseThread(pause_time);
 		getViewportScrollOffset();
     }
 	
@@ -1022,7 +1011,7 @@ public class Browser {
 	}
 	
 	/**
-	 * Loads attributes for this element into a list of {@link Attribute}s
+	 * Loads attributes for this element into a list of attributes
 	 * 
 	 * @param attributeList
 	 */
@@ -1331,7 +1320,6 @@ public class Browser {
 	public void scrollToBottomOfPage() {
 		((JavascriptExecutor) driver)
 	     	.executeScript("window.scrollTo(0, document.body.scrollHeight)");
-		TimingUtils.pauseThread(500L);
 		getViewportScrollOffset();
 	}
 	
@@ -1367,6 +1355,10 @@ public class Browser {
 
 	public boolean is503Error() {
 		return this.getSource().contains("503 Service Temporarily Unavailable");
+	}
+
+	public static boolean is503Error(String source) {
+		return source.contains("503 Service Temporarily Unavailable");
 	}
 
 	public WebElement findElement(String xpath) throws WebDriverException{

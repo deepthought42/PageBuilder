@@ -52,7 +52,6 @@ import com.looksee.pageBuilder.services.JourneyService;
 import com.looksee.pageBuilder.services.PageStateService;
 import com.looksee.pageBuilder.services.StepService;
 import com.looksee.utils.BrowserUtils;
-import com.looksee.utils.ElementStateUtils;
 
 
 /**
@@ -102,7 +101,7 @@ public class AuditController {
 	{
 		Body.Message message = body.getMessage();
 		String data = message.getData();
-	    String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
+	    String target = !data.isEmpty() ? new String(Base64.getMimeDecoder().decode(data)) : "";
 	    ObjectMapper input_mapper = new ObjectMapper();
         AuditStartMessage url_msg = input_mapper.readValue(target, AuditStartMessage.class);
         
@@ -130,14 +129,26 @@ public class AuditController {
 				
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
-				
+			
+			long domain_map_id = -1;
+			DomainMap domain_map = null;
+			if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
+				domain_map = domain_map_service.findByDomainAuditId(url_msg.getAuditId());
+				if(domain_map == null) {
+					domain_map = domain_map_service.save(new DomainMap());
+					log.warn("adding domain map to audit record = " + url_msg.getAuditId());
+
+					audit_record_service.addDomainMap(url_msg.getAuditId(), domain_map.getId());
+				}
+				domain_map_id = domain_map.getId();
+			}
 			//update audit record with progress
 			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
-			page_state = browser_service.buildPageState(url, browser, is_secure, http_status);
+			page_state = browser_service.buildPageState(url, browser, is_secure, http_status, url_msg.getAuditId());
 		
 			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
-			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS
-			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getAuditId(), 
+			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS,
+			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getAuditId(),
 																				page_state.getKey());
 			
 			if(page_state_record == null 
@@ -149,20 +160,28 @@ public class AuditController {
 																							xpaths,
 																							browser,
 																							url_msg.getAuditId());
-				String host = url.getHost();
-
-				element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
-				element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
+				//String host = url.getHost();
+				//element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
+				//element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 				page_state.setElements(element_states);
+				log.warn("saving page state with element states = "+element_states.size() +"; page state element size = "+page_state.getElements().size());
 				page_state = page_state_service.save(page_state);
+				log.warn("saved page state id = "+page_state.getId());
 			}
 			else {
 				page_state = page_state_record;
 			}
 
-			page_state.setElements(page_state_service.getElementStates(page_state.getId()));
-
+			List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
+			log.warn("element list size = "+elements.size());
+			page_state.setElements(elements);
+			
+			log.warn("page state element count = "+page_state.getElements().size());
 		    if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
+				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map				
+				
+
+				domain_map_service.addPageToDomainMap(domain_map.getId(), page_state.getId());
 				PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
 																		page_state.getId(),
 																		url_msg.getAuditId());
@@ -178,15 +197,6 @@ public class AuditController {
 				journey.setCandidateKey(journey.generateKey());
 				Journey saved_journey = journey_service.save(journey);
 				journey.setId(saved_journey.getId());
-				
-				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map				
-				DomainMap domain_map = domain_map_service.findByDomainAuditId(url_msg.getAuditId());
-				if(domain_map == null) {
-					domain_map = domain_map_service.save(new DomainMap());
-					log.warn("adding domain map to audit record = " + url_msg.getAuditId());
-
-					audit_record_service.addDomainMap(url_msg.getAuditId(), domain_map.getId());
-				}
 				
 				domain_map_service.addJourneyToDomainMap(journey.getId(), domain_map.getId());
 				
@@ -214,9 +224,9 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent message to verifed journey topic", HttpStatus.OK);
 		}
 		catch(Exception e) {
-			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getAccountId(), 
-																						url_msg.getAuditId(), 
-																						url_msg.getUrl().toString(), 
+			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getAccountId(),
+																						url_msg.getAuditId(),
+																						url_msg.getUrl().toString(),
 																						"An exception occurred while building page state "+url_msg.getUrl()+".\n"+e.getMessage());
 
 			String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
@@ -231,7 +241,6 @@ public class AuditController {
 				browser.close();
 			}
 		}
-		
 	}
 	
 	/**

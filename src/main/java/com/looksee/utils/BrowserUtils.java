@@ -34,7 +34,6 @@ import org.jsoup.select.Elements;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +41,12 @@ import org.slf4j.LoggerFactory;
 import com.looksee.pageBuilder.gcp.GoogleCloudStorage;
 import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ColorData;
+import com.looksee.pageBuilder.models.Domain;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.ImageElementState;
 import com.looksee.pageBuilder.models.PageLoadAnimation;
 import com.looksee.pageBuilder.models.PageState;
-import com.looksee.pageBuilder.models.enums.BrowserEnvironment;
 import com.looksee.pageBuilder.models.enums.BrowserType;
-import com.looksee.pageBuilder.services.BrowserService;
 
 
 /**
@@ -1018,53 +1016,6 @@ public class BrowserUtils {
 		}
 	}
 
-	/**
-	 * Extracts the page source from the URL.
-	 * Attempts to connect to the browser service, then navigates to the url and extracts the source.
-	 * 
-	 * @param sanitized_url The sanitized URL that contains the page source
-	 * @param browser_service 
-	 * @return {@code String} The page source
-	 * 
-	 * @pre sanitized_url != null
-	 * @pre browser_service != null
-	 */
-	public static String extractPageSrc(URL sanitized_url, BrowserService browser_service){
-		assert sanitized_url != null;
-		assert browser_service != null;
-
-		//Extract page source from url
-		int attempt_cnt = 0;
-		String page_src = "";
-		
-		do {
-			Browser browser = null;
-			try {
-				browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
-				TimingUtils.pauseThread(5L);
-				browser.navigateTo(sanitized_url.toString());
-				
-				sanitized_url = new URL(browser.getDriver().getCurrentUrl());
-				page_src = browser_service.getPageSource(browser, sanitized_url);
-				attempt_cnt = 10000000;
-				break;
-			}
-			catch(MalformedURLException e) {
-				log.warn("Malformed URL exception occurred for  "+sanitized_url);
-				break;
-			}
-			catch(WebDriverException e) {								
-				log.warn("failed to obtain page source during crawl of :: "+sanitized_url);
-			}
-			finally {
-				if(browser != null) {
-					browser.close();
-				}
-			}
-		} while (page_src.trim().isEmpty() && attempt_cnt < 1000);
-
-		return page_src;
-  }	
 	
 	/**
 	 * Retrieves {@link ElementStates} that contain text
@@ -1187,5 +1138,16 @@ public class BrowserUtils {
 	public static boolean isHidden(WebElement web_element) {
 		Rectangle rect = web_element.getRect();
 		return rect.getX()<=0 && rect.getY()<=0 && rect.getWidth()<=0 && rect.getHeight()<=0;
+	}
+
+	/**
+	 * Checks if a {@link WebElement element} is currently hidden
+	 * 
+	 * @param web_element {@link WebElement element}
+	 * 
+	 * @return returns true if it is hidden, otherwise returns false
+	 */
+	public static boolean isHidden(Point location, Dimension size) {
+		return location.getX()<=0 && location.getY()<=0 && size.getWidth()<=0 && size.getHeight()<=0;
 	}
 }

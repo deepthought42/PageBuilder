@@ -44,4 +44,8 @@ public class DomainMapService {
 	public DomainMap findByDomainAuditId(long domain_audit_id) {
 		return domain_map_repo.findByDomainAuditId(domain_audit_id);
 	}
+
+    public void addPageToDomainMap(long domain_map_id, long page_state_id) {
+        domain_map_repo.addPageToDomainMap(domain_map_id, page_state_id);
+    }
 }
