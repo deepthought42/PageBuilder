@@ -48,6 +48,7 @@ jobs:
           docker tag deepthought42/page-builder:${{ env.VERSION }} deepthought42/page-builder:latest
           
   release:
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
