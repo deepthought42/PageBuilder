@@ -44,8 +44,8 @@ jobs:
           
       - name: Build Docker image
         run: |
-          docker build -t deepthought42/crawler-api:${{ env.VERSION }} .
-          docker tag deepthought42/crawler-api:${{ env.VERSION }} deepthought42/crawler-api:latest
+          docker build -t deepthought42/page-builder:${{ env.VERSION }} .
+          docker tag deepthought42/page-builder:${{ env.VERSION }} deepthought42/page-builder:latest
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -55,8 +55,8 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker push deepthought42/crawler-api:${{ env.VERSION }}
-          docker push deepthought42/crawler-api:latest
+          docker push deepthought42/page-builder:${{ env.VERSION }}
+          docker push deepthought42/page-builder:latest
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -64,6 +64,6 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
           body_path: CHANGELOG.md
-          files: CrawlerApi-${{ env.VERSION }}.jar
+          files: PageBuilder-${{ env.VERSION }}.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
