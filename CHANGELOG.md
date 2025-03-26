@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/deepthought42/PageBuilder/compare/v1.0.0...v1.0.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* release CI step relies on build ([c1a1e64](https://github.com/deepthought42/PageBuilder/commit/c1a1e64bc52695438d962664a1edba12d64c2a65))
+
 # 1.0.0 (2025-03-25)
 
 
