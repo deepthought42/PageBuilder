@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/deepthought42/PageBuilder/compare/v1.2.0...v1.2.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* mvn install skips tests ([44cee5e](https://github.com/deepthought42/PageBuilder/commit/44cee5eb3bbef391fa90decf293cd96443d2fb74))
+
 # [1.2.0](https://github.com/deepthought42/PageBuilder/compare/v1.1.0...v1.2.0) (2025-03-26)
 
 
