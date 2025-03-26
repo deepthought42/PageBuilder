@@ -1,3 +1,11 @@
+## [1.0.3](https://github.com/deepthought42/PageBuilder/compare/v1.0.2...v1.0.3) (2025-03-26)
+
+
+### Bug Fixes
+
+* changed build to test ([477bdc7](https://github.com/deepthought42/PageBuilder/commit/477bdc771d72bf836fdc6333ac2d7560a5ae4d6c))
+* moved docker build into build and release step ([a4f73a8](https://github.com/deepthought42/PageBuilder/commit/a4f73a84f06d843786b8338c2bdd29b31dd3a553))
+
 ## [1.0.2](https://github.com/deepthought42/PageBuilder/compare/v1.0.1...v1.0.2) (2025-03-26)
 
 
