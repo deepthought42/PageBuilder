@@ -43,7 +43,7 @@ jobs:
         run: mvn test
           
   build-and-release:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
