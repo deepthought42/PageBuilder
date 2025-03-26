@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/deepthought42/PageBuilder/compare/v1.1.0...v1.2.0) (2025-03-26)
+
+
+### Bug Fixes
+
+* bump-version relies on test step ([b5b8061](https://github.com/deepthought42/PageBuilder/commit/b5b8061326e980af019e8e3d7ab414888c5b073e))
+* fixed github actions yml errors ([121ea3e](https://github.com/deepthought42/PageBuilder/commit/121ea3e889cb2eda1e53f1eb4f1f3b0e1ac8c08c))
+* moved maven test to beginning of test step ([a0ba503](https://github.com/deepthought42/PageBuilder/commit/a0ba503d087b3242d982393c1ad26f318ae74f46))
+
+
+### Features
+
+* bump version put in separate step ([213c676](https://github.com/deepthought42/PageBuilder/commit/213c676c202809bf4bc6d94960ad8381ad03045f))
+
 # [1.1.0](https://github.com/deepthought42/PageBuilder/compare/v1.0.5...v1.1.0) (2025-03-26)
 
 
