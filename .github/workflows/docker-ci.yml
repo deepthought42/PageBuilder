@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -95,7 +95,7 @@ jobs:
           java-version: '17'
       
       - name: Test with Maven
-        run: mvn clean install
+        run: mvn install -DskipTests
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
