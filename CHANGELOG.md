@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/deepthought42/PageBuilder/compare/v1.0.1...v1.0.2) (2025-03-26)
+
+
+### Bug Fixes
+
+* corrected jar file name for java run command ([66e6d9f](https://github.com/deepthought42/PageBuilder/commit/66e6d9f1326de81d90f210e1ce8790dc5ff4938c))
+
 ## [1.0.1](https://github.com/deepthought42/PageBuilder/compare/v1.0.0...v1.0.1) (2025-03-25)
 
 
