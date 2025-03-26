@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,16 +42,16 @@ jobs:
       - name: Test with Maven
         run: mvn test
           
-      - name: Build Docker image
-        run: |
-          docker build -t deepthought42/page-builder:${{ env.VERSION }} .
-          docker tag deepthought42/page-builder:${{ env.VERSION }} deepthought42/page-builder:latest
-          
-  release:
+  build-and-release:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+      - name: Build Docker image
+        run: |
+          docker build -t deepthought42/page-builder:${{ env.VERSION }} .
+          docker tag deepthought42/page-builder:${{ env.VERSION }} deepthought42/page-builder:latest
+
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
