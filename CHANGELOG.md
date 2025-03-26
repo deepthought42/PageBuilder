@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/deepthought42/PageBuilder/compare/v1.0.5...v1.1.0) (2025-03-26)
+
+
+### Features
+
+* added separate job for github release ([0f9494a](https://github.com/deepthought42/PageBuilder/commit/0f9494a97c3653787da4d44b3a4da9f5758b5b98))
+
 ## [1.0.5](https://github.com/deepthought42/PageBuilder/compare/v1.0.4...v1.0.5) (2025-03-26)
 
 
