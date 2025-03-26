@@ -49,10 +49,10 @@ jobs:
         run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
           
   build-and-release:
-    needs: test
+    needs: bump-version
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.test.outputs.VERSION }}
+      VERSION: ${{ needs.bump-version.outputs.VERSION }}
 
     steps:
       - name: Checkout code
@@ -75,10 +75,10 @@ jobs:
           docker push deepthought42/page-builder:latest
       
   github-release:
-    needs: test
+    needs: bump-version
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.test.outputs.VERSION }}
+      VERSION: ${{ needs.bump-version.outputs.VERSION }}
 
     steps:
       - name: Checkout code
