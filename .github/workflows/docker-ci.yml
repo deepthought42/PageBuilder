@@ -27,6 +27,7 @@ jobs:
 
   bump-version:
     runs-on: ubuntu-latest
+    needs: test
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
 
