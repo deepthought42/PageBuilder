@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/deepthought42/PageBuilder/compare/v1.0.4...v1.0.5) (2025-03-26)
+
+
+### Bug Fixes
+
+* added code checkout to release step ([28ebcd4](https://github.com/deepthought42/PageBuilder/commit/28ebcd4ee0239820184a8a03a67007525e338f49))
+
 ## [1.0.4](https://github.com/deepthought42/PageBuilder/compare/v1.0.3...v1.0.4) (2025-03-26)
 
 
