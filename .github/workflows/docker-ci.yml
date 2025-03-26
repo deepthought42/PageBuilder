@@ -24,6 +24,9 @@ jobs:
           distribution: 'adopt'
           java-version: '17'
 
+      - name: Test with Maven
+        run: mvn test
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -40,9 +43,6 @@ jobs:
       - name: Extract new version from pom.xml
         id: get_version
         run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
-
-      - name: Test with Maven
-        run: mvn test
           
   build-and-release:
     needs: test
