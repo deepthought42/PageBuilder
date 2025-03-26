@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/deepthought42/PageBuilder/compare/v1.0.3...v1.0.4) (2025-03-26)
+
+
+### Bug Fixes
+
+* made version available across steps ([350562e](https://github.com/deepthought42/PageBuilder/commit/350562e23870c4a77664e59d49335cdf3615a3e2))
+
 ## [1.0.3](https://github.com/deepthought42/PageBuilder/compare/v1.0.2...v1.0.3) (2025-03-26)
 
 
