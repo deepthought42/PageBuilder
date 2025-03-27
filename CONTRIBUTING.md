@@ -20,3 +20,7 @@ chore(deps): update Docker base image
 - `refactor`: Code improvements
 - `style`: Code style changes
 - `test`: Add/update tests
+
+When writing a commit message, please follow the following guidelines:
+- Use the present tense.
+- Include the issue number in the commit message if it is related to an issue.
