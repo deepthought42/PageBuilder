@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/deepthought42/PageBuilder/compare/v1.2.1...v1.2.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* updated staging dockerfile ([6a714ad](https://github.com/deepthought42/PageBuilder/commit/6a714ad9b77adb6c08ad7c48763db6faefc5cb21))
+
 ## [1.2.1](https://github.com/deepthought42/PageBuilder/compare/v1.2.0...v1.2.1) (2025-03-26)
 
 
