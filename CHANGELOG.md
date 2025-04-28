@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/deepthought42/PageBuilder/compare/v1.2.2...v1.2.3) (2025-04-24)
+
+
+### Bug Fixes
+
+* removed gcp credential location ([f528091](https://github.com/deepthought42/PageBuilder/commit/f5280918b4873eb199efc5335178303efe6bc43d))
+
 ## [1.2.2](https://github.com/deepthought42/PageBuilder/compare/v1.2.1...v1.2.2) (2025-03-27)
 
 
