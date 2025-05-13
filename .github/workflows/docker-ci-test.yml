@@ -1,4 +1,4 @@
-name: Build, Push, Release
+name: Test
 
 on:
   pull_request:
@@ -9,11 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # This job runs on:
-    # - Push to master
-    # - PR creation/updates
-    # - PR merge to master
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # This job runs on PR creation and updates
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -27,3 +24,18 @@ jobs:
 
       - name: Test with Maven
         run: mvn test
+        
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ github.head_ref }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image
+        run: |
+          docker build -t deepthought42/page-builder:${{ env.BRANCH_NAME }} .
+          docker tag deepthought42/page-builder:${{ env.BRANCH_NAME }} deepthought42/page-builder:latest

@@ -1,12 +1,6 @@
-name: Build, Push, Release
+name: Build and Release
 
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
   pull_request:
     branches:
       - master
@@ -18,10 +12,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # This job runs on:
-    # - Direct push to master (not from PR merge)
-    # - PR merge to master
-    if: (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    # This job runs only when a PR is merged to master
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
 
     steps:
       - name: Checkout code
@@ -38,8 +30,8 @@ jobs:
 
   bump-version:
     needs: test
-    # Run on direct push to master or PR merge, but not both
-    if: (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    # Run only when PR is merged to master
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
@@ -67,8 +59,8 @@ jobs:
           
   build-and-release:
     needs: bump-version
-    # Run on direct push to master or PR merge, but not both
-    if: (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    # Run only when PR is merged to master
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
@@ -95,8 +87,8 @@ jobs:
       
   github-release:
     needs: bump-version
-    # Run on direct push to master or PR merge, but not both
-    if: (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    # Run only when PR is merged to master
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
