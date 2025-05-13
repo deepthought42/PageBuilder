@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/deepthought42/PageBuilder/compare/v1.2.3...v1.2.4) (2025-05-13)
+
+
+### Bug Fixes
+
+* fixed double pipeline trigger issue ([34f5a8a](https://github.com/deepthought42/PageBuilder/commit/34f5a8a462b8ad6abac95a461d5d7508a07b7cfc))
+
 ## [1.2.3](https://github.com/deepthought42/PageBuilder/compare/v1.2.2...v1.2.3) (2025-04-24)
 
 
