@@ -10,7 +10,7 @@ on:
   pull_request:
     branches:
       - master
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -22,7 +22,7 @@ jobs:
     # - Push to master
     # - PR creation/updates
     # - PR merge to master
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout code
