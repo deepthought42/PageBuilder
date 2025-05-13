@@ -10,7 +10,7 @@ on:
   pull_request:
     branches:
       - master
-    types: [closed]
+    types: [opened, synchronize, reopened, closed]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -18,7 +18,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # This job runs on both push to master and pull request merges
+    # This job runs on:
+    # - Push to master
+    # - PR creation/updates
+    # - PR merge to master
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
