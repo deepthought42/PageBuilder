@@ -25,7 +25,7 @@ jobs:
       - name: Test with Maven
         run: mvn test
         
-  build-and-release:
+  build:
     needs: test
     runs-on: ubuntu-latest
     env:
