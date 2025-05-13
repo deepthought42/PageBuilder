@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,6 @@ import com.looksee.pageBuilder.gcp.PubSubErrorPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubJourneyVerifiedPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubPageAuditPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubPageCreatedPublisherImpl;
-import com.looksee.pageBuilder.mapper.Body;
 import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
@@ -44,6 +45,7 @@ import com.looksee.pageBuilder.models.message.PageAuditMessage;
 import com.looksee.pageBuilder.models.message.PageBuiltMessage;
 import com.looksee.pageBuilder.models.message.PageDataExtractionError;
 import com.looksee.pageBuilder.models.message.VerifiedJourneyMessage;
+import com.looksee.pageBuilder.schemas.BodySchema;
 import com.looksee.pageBuilder.services.AuditRecordService;
 import com.looksee.pageBuilder.services.BrowserService;
 import com.looksee.pageBuilder.services.DomainMapService;
@@ -53,12 +55,20 @@ import com.looksee.pageBuilder.services.PageStateService;
 import com.looksee.pageBuilder.services.StepService;
 import com.looksee.utils.BrowserUtils;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 
 /**
  * API Controller with main endpoint for running the page builder script
  * 
  */
 @RestController
+@Tag(name = "Audit", description = "API endpoints for building page objects")
 public class AuditController {
 	private static Logger log = LoggerFactory.getLogger(AuditController.class);
 
@@ -95,12 +105,32 @@ public class AuditController {
 	@Autowired
 	private PubSubPageAuditPublisherImpl audit_record_topic;
 	
+	@Operation(
+		summary = "Extract page data from a given URL",
+		description = "Receives an audit message, processes the page, and publishes appropriate messages to Pub/Sub topics"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "Successfully processed audit message",
+			content = @Content(schema = @Schema(implementation = String.class))
+		),
+		@ApiResponse(
+			responseCode = "500",
+			description = "Internal server error while processing audit message",
+			content = @Content(schema = @Schema(implementation = String.class))
+		)
+	})
+	@io.swagger.v3.oas.annotations.parameters.RequestBody(
+		description = "Audit message containing URL and audit details",
+		required = true,
+		content = @Content(schema = @Schema(implementation = BodySchema.class))
+	)
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> receiveMessage(@RequestBody Body body) 
-			throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException 
-	{
-		Body.Message message = body.getMessage();
-		String data = message.getData();
+	public ResponseEntity<String> receiveMessage(
+		@Valid @RequestBody BodySchema body
+	) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException {
+		String data = body.getMessage().getData();
 	    String target = !data.isEmpty() ? new String(Base64.getMimeDecoder().decode(data)) : "";
 	    ObjectMapper input_mapper = new ObjectMapper();
         AuditStartMessage url_msg = input_mapper.readValue(target, AuditStartMessage.class);
@@ -130,18 +160,16 @@ public class AuditController {
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
 			
-			long domain_map_id = -1;
 			DomainMap domain_map = null;
 			if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
 				domain_map = domain_map_service.findByDomainAuditId(url_msg.getAuditId());
 				if(domain_map == null) {
 					domain_map = domain_map_service.save(new DomainMap());
 					log.warn("adding domain map to audit record = " + url_msg.getAuditId());
-
 					audit_record_service.addDomainMap(url_msg.getAuditId(), domain_map.getId());
 				}
-				domain_map_id = domain_map.getId();
 			}
+
 			//update audit record with progress
 			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 			page_state = browser_service.buildPageState(url, browser, is_secure, http_status, url_msg.getAuditId());
@@ -164,23 +192,16 @@ public class AuditController {
 				//element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
 				//element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 				page_state.setElements(element_states);
-				log.warn("saving page state with element states = "+element_states.size() +"; page state element size = "+page_state.getElements().size());
 				page_state = page_state_service.save(page_state);
-				log.warn("saved page state id = "+page_state.getId());
 			}
 			else {
 				page_state = page_state_record;
 			}
 
 			List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
-			log.warn("element list size = "+elements.size());
 			page_state.setElements(elements);
 			
-			log.warn("page state element count = "+page_state.getElements().size());
 		    if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
-				//if domain map exists then attach journey to domain map, otherwise create new domain map and add it to the domain, then add the journey to the domain map				
-				
-
 				domain_map_service.addPageToDomainMap(domain_map.getId(), page_state.getId());
 				PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
 																		page_state.getId(),
@@ -253,7 +274,7 @@ public class AuditController {
 	 * @param element_states
 	 * @return {@link List} of {@link ElementState} ids 
 	 */
-	private List<ElementState> saveNewElements(long page_state_id, List<ElementState> element_states) {		
+	private List<ElementState> saveNewElements(long page_state_id, List<ElementState> element_states) {
 		return element_states.stream()
 							   .map(element -> element_state_service.save(element))
 							   .collect(Collectors.toList());
