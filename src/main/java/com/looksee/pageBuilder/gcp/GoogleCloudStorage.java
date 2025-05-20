@@ -13,7 +13,6 @@ import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.cloud.WriteChannel;
@@ -41,9 +40,7 @@ public class GoogleCloudStorage {
     private final String publicUrl;
 
 	//private static String bucket_name     = "look-see-data";
-	
-	@Autowired
-    public GoogleCloudStorage(Storage storage, GoogleCloudStorageProperties gcsProperties) {
+	public GoogleCloudStorage(Storage storage, GoogleCloudStorageProperties gcsProperties) {
         this.storage = storage;
         this.bucketName = gcsProperties.getBucketName();
         this.publicUrl = gcsProperties.getPublicUrl();
@@ -54,7 +51,7 @@ public class GoogleCloudStorage {
 	 * @param content
 	 * @param key
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public String uploadHtmlContent(String content, String key) throws IOException {
         BlobId blobId = BlobId.of(bucketName, key);
@@ -90,10 +87,10 @@ public class GoogleCloudStorage {
 	 * @throws IOException
 	 */
 	public String saveImage(BufferedImage image,
-								   String domain,
-								   String checksum,
-								   BrowserType browser
-   ) throws IOException {
+							String domain,
+							String checksum,
+							BrowserType browser
+    ) throws IOException {
 		assert image != null;
 		assert domain != null;
 		assert !domain.isEmpty();
@@ -112,7 +109,7 @@ public class GoogleCloudStorage {
 		String file_name = key+".png";
 		Blob blob = bucket.get(file_name);
 		if(blob != null && blob.exists()) {
-        	return blob.getMediaLink();
+			return blob.getMediaLink();
         }
 		
 		//blob = bucket.create(key+".png", imageInByte);
@@ -124,7 +121,7 @@ public class GoogleCloudStorage {
 		
 		blob = bucket.get(file_name);
 		if(blob != null && blob.exists()) {
-        	return blob.getMediaLink();
+			return blob.getMediaLink();
         }
 		else {
 			throw new IOException("Couldn't find blob after upload");

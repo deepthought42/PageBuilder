@@ -81,6 +81,9 @@ public class BrowserService {
 	@Autowired
 	private ElementStateService element_state_service;
 	
+	@Autowired
+	private GoogleCloudStorage googleCloudStorage;
+	
 	/**
 	 * retrieves a new browser connection
 	 *
@@ -118,15 +121,15 @@ public class BrowserService {
 	 * @pre screenshot != null
 	 * 
 	 * @return {@link ElementState} based on {@link WebElement} and other params
-	 * @throws IOException 
-	 * @throws MalformedURLException 
+	 * @throws IOException
+	 * @throws MalformedURLException
 	 */
 	public static ElementState buildElementState(
-			String xpath, 
-			Map<String, String> attributes, 
+			String xpath,
+			Map<String, String> attributes,
 			Element element,
-			ElementClassification classification, 
-			Map<String, String> rendered_css_values, 
+			ElementClassification classification,
+			Map<String, String> rendered_css_values,
 			String screenshot_url,
 			String css_selector,
 			Dimension element_size,
@@ -146,18 +149,18 @@ public class BrowserService {
 		ElementState element_state = new ElementState(
 											element.ownText().trim(),
 											element.text(),
-											xpath, 
-											element.tagName(), 
-											attributes, 
-											rendered_css_values, 
-											screenshot_url, 
-											element_location.getX(), 
-											element_location.getY(), 
-											element_size.getWidth(), 
-											element_size.getHeight(), 
+											xpath,
+											element.tagName(),
+											attributes,
+											rendered_css_values,
+											screenshot_url,
+											element_location.getX(),
+											element_location.getY(),
+											element_size.getWidth(),
+											element_size.getHeight(),
 											classification,
 											element.outerHtml(),
-											css_selector, 
+											css_selector,
 											foreground_color,
 											rendered_css_values.get("background-color"),
 											false);
@@ -186,11 +189,11 @@ public class BrowserService {
 	 * @throws IOException
 	 */
 	public static ElementState buildImageElementState(
-			String xpath, 
-			Map<String, String> attributes, 
+			String xpath,
+			Map<String, String> attributes,
 			Element element,
-			ElementClassification classification, 
-			Map<String, String> rendered_css_values, 
+			ElementClassification classification,
+			Map<String, String> rendered_css_values,
 			String screenshot_url,
 			String css_selector,
 			Set<ImageLandmarkInfo> landmark_info_set,
@@ -321,7 +324,7 @@ public class BrowserService {
 	}
 	
 	/**
-	 * Navigates to a url, checks that the service is available, then removes drift 
+	 * Navigates to a url, checks that the service is available, then removes drift
 	 * 	chat client from page if it exists. Finally it builds a {@link PageState}
 	 * 
 	 *Constructs a page object that contains all child elements that are considered to be potentially expandable.
@@ -379,17 +382,17 @@ public class BrowserService {
 
 		BufferedImage viewport_screenshot = browser.getViewportScreenshot();
 		String screenshot_checksum = ImageUtils.getChecksum(viewport_screenshot);
-		String viewport_screenshot_url = GoogleCloudStorage.saveImage(viewport_screenshot, 
-																	  current_url.getHost(), 
-																	  screenshot_checksum, 
-																	  BrowserType.create(browser.getBrowserName()));
+		String viewport_screenshot_url = googleCloudStorage.saveImage(viewport_screenshot,
+																		current_url.getHost(),
+																		screenshot_checksum,
+																		BrowserType.create(browser.getBrowserName()));
 		viewport_screenshot.flush();
 		
-		BufferedImage full_page_screenshot = browser.getFullPageScreenshotShutterbug();		
+		BufferedImage full_page_screenshot = browser.getFullPageScreenshotShutterbug();
 		String full_page_screenshot_checksum = ImageUtils.getChecksum(full_page_screenshot);
-		String full_page_screenshot_url = GoogleCloudStorage.saveImage(full_page_screenshot, 
-																		current_url.getHost(), 
-																		full_page_screenshot_checksum, 
+		String full_page_screenshot_url = googleCloudStorage.saveImage(full_page_screenshot,
+																		current_url.getHost(),
+																		full_page_screenshot_checksum,
 																		BrowserType.create(browser.getBrowserName()));
 		full_page_screenshot.flush();
 		
@@ -406,8 +409,8 @@ public class BrowserService {
 							BrowserType.CHROME,
 							full_page_screenshot_url,
 							full_page_screenshot.getWidth(),
-							full_page_screenshot.getHeight(), 
-							url_without_protocol, 
+							full_page_screenshot.getHeight(),
+							url_without_protocol,
 							title,
 							is_secure,
 							status_code,
@@ -420,19 +423,19 @@ public class BrowserService {
 	}
 	
 	/**
-	 * identify and collect data for elements within the Document Object Model 
-	 * 
+	 * identify and collect data for elements within the Document Object Model
+	 *
 	 * @param domain_audit_id TODO
 	 * @param full_page_screenshot TODO
 	 * @param page_source
 	 * @param rule_sets TODO
 	 * @param reviewed_xpaths
-	 * 
+	 *
 	 * @return List of ElementStates
-	 * 
-	 * @throws Exception 
-	 * @throws XPathExpressionException 
-	 * 
+	 *
+	 * @throws Exception
+	 * @throws XPathExpressionException
+	 *
 	 * @pre xpaths != null
 	 * @pre browser != null
 	 * @pre element_states_map != null
@@ -467,7 +470,7 @@ public class BrowserService {
 				Point element_location = web_element.getLocation();
 				boolean is_displayed = web_element.isDisplayed();
 				//check if element is visible in pane and if not then continue to next element xpath
-				 if( !is_displayed
+				if( !is_displayed
 						|| !hasWidthAndHeight(element_size)
 						|| doesElementHaveNegativePosition(element_location)
 						|| isStructureTag( web_element.getTagName())
@@ -486,19 +489,19 @@ public class BrowserService {
 				ElementClassification classification = ElementClassification.UNKNOWN;
 				if(isImageElement(web_element)) {
 					ElementState element_state = buildImageElementState(xpath,
-																	   new HashMap<>(),
-																	   element,
-																	   classification,
-																	   new HashMap<>(),
-																	   null,
-																	   css_selector,
-																	   null,
-																	   null,
-																	   null,
-																	   null,
-																	   null,
-																	   element_size,
-																	   element_location);
+																		new HashMap<>(),
+																		element,
+																		classification,
+																		new HashMap<>(),
+																		null,
+																		css_selector,
+																		null,
+																		null,
+																		null,
+																		null,
+																		null,
+																		element_size,
+																		element_location);
 					
 					ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
 					if(element_record == null) {
@@ -511,14 +514,14 @@ public class BrowserService {
 				}
 				else {
 					ElementState element_state = buildElementState(xpath,
-																   new HashMap<>(),
-																   element,
-																   classification,
-																   new HashMap<>(),
-																   null,
-																   css_selector,
-																   element_size,
-																   element_location);
+																	new HashMap<>(),
+																	element,
+																	classification,
+																	new HashMap<>(),
+																	null,
+																	css_selector,
+																	element_size,
+																	element_location);
 					
 					ElementState element_record = element_state_service.findByDomainAuditAndKey(domain_audit_id, element_state);
 					if(element_record == null) {
@@ -621,11 +624,11 @@ public class BrowserService {
 			"Checking template structure"
 			};
 	/**
-	 * Select random message from list of data extraction messages. 
+	 * Select random message from list of data extraction messages.
 	 * 
 	 * @return
 	 */
-	private String generateDataExtractionMessage() {		
+	private String generateDataExtractionMessage() {
 		int random_idx = (int) (Math.random() * (data_extraction_messages.length-1));
 		return data_extraction_messages[random_idx];
 	}
@@ -750,14 +753,14 @@ public class BrowserService {
 	public static boolean isStructureTag(String tag_name) {
 		assert tag_name != null;
 
-		return "head".contentEquals(tag_name) || "link".contentEquals(tag_name) 
-				|| "script".contentEquals(tag_name) || "g".contentEquals(tag_name) 
-				|| "path".contentEquals(tag_name) || "svg".contentEquals(tag_name) 
-				|| "polygon".contentEquals(tag_name) || "br".contentEquals(tag_name) 
-				|| "style".contentEquals(tag_name) || "polyline".contentEquals(tag_name) 
-				|| "use".contentEquals(tag_name) || "template".contentEquals(tag_name) 
+		return "head".contentEquals(tag_name) || "link".contentEquals(tag_name)
+				|| "script".contentEquals(tag_name) || "g".contentEquals(tag_name)
+				|| "path".contentEquals(tag_name) || "svg".contentEquals(tag_name)
+				|| "polygon".contentEquals(tag_name) || "br".contentEquals(tag_name)
+				|| "style".contentEquals(tag_name) || "polyline".contentEquals(tag_name)
+				|| "use".contentEquals(tag_name) || "template".contentEquals(tag_name)
 				|| "audio".contentEquals(tag_name)  || "iframe".contentEquals(tag_name)
-				|| "noscript".contentEquals(tag_name) || "meta".contentEquals(tag_name) 
+				|| "noscript".contentEquals(tag_name) || "meta".contentEquals(tag_name)
 				|| "base".contentEquals(tag_name) || "em".contentEquals(tag_name)
 				|| "body".contentEquals(tag_name);
 	}
@@ -788,7 +791,7 @@ public class BrowserService {
 	/**
 	 * Checks if {@link WebElement element} is visible in the current viewport window or not
 	 * 
-	 * @param browser {@link Browser browser} connection to use 
+	 * @param browser {@link Browser browser} connection to use
 	 * @param location {@link Point point} where the element top left corner is located
 	 * @param size {@link Dimension size} of the element
 	 * 
@@ -818,7 +821,7 @@ public class BrowserService {
 	/**
 	 * Checks if {@link ElementState element} is visible in the current viewport window or not
 	 * 
-	 * @param browser {@link Browser browser} connection to use 
+	 * @param browser {@link Browser browser} connection to use
 	 * @param location {@link ElementState element} to be be evaluated
 	 * 
 	 * @return true if element is rendered within viewport, otherwise false
@@ -845,7 +848,7 @@ public class BrowserService {
 	/**
 	 * Checks if {@link WebElement element} is visible in the current viewport window or not
 	 * 
-	 * @param browser {@link Browser browser} connection to use 
+	 * @param browser {@link Browser browser} connection to use
 	 * @param size {@link Dimension size} of the element
 	 * 
 	 * @return true if element is rendered within viewport, otherwise false
@@ -1054,7 +1057,7 @@ public class BrowserService {
 	public static String transformXpathSelectorToCss(String xpath_selector) {
 		String selector = "";
 		
-		//convert index value with format '[integer]' to css format		
+		//convert index value with format '[integer]' to css format
 		String pattern_string = "(\\[([0-9]+)\\])";
         Pattern pattern_index = Pattern.compile(pattern_string);
         Matcher matcher = pattern_index.matcher(xpath_selector);
@@ -1248,7 +1251,7 @@ public class BrowserService {
 	}
 
 	/**
-	 * Checks if Attributes contains keywords indicative of a slider 
+	 * Checks if Attributes contains keywords indicative of a slider
 	 * @param attributes
 	 * 
 	 * @return true if any of keywords present, otherwise false
@@ -1549,6 +1552,21 @@ public class BrowserService {
         return "";
 	}
 
+	/**
+	 * Extracts the host from a URL string
+	 * @param urlString The URL string to extract host from
+	 * @return The host name without protocol or path
+	 */
+	public static String extractHost(String urlString) {
+		try {
+			URL url = new URL(urlString);
+			return url.getHost();
+		} catch (MalformedURLException e) {
+			log.warn("Failed to extract host from URL: " + urlString);
+			return "";
+		}
+	}
+
 	public static Set<String> extractMetadata(Document html_doc) {
 		Elements meta_tags = html_doc.getElementsByTag("meta");
 		Set<String> meta_tag_html = new HashSet<String>();
@@ -1688,9 +1706,9 @@ public class BrowserService {
 			try {
 				element_screenshot = Browser.getElementScreenshot(element_state, page_screenshot);
 				String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
-				element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
-																		host, 
-																		screenshot_checksum, 
+				element_screenshot_url = googleCloudStorage.saveImage(element_screenshot,
+																		host,
+																		screenshot_checksum,
 																		BrowserType.create(browser.getBrowserName()));
 			}
 			catch(Exception e1){
@@ -1704,9 +1722,9 @@ public class BrowserService {
 				element_screenshot = browser.getElementScreenshot(web_element);
 				String screenshot_checksum = ImageUtils.getChecksum(element_screenshot);
 				
-				element_screenshot_url = GoogleCloudStorage.saveImage(element_screenshot, 
-																		host, 
-																		screenshot_checksum, 
+				element_screenshot_url = googleCloudStorage.saveImage(element_screenshot,
+																		host,
+																		screenshot_checksum,
 																		BrowserType.create(browser.getBrowserName()));
 				element_screenshot.flush();
 			}
@@ -1738,13 +1756,12 @@ public class BrowserService {
 	 * @param host
 	 * @return
 	 */
-	public ElementState enrichImageElement(ElementState element_state, 
-												   PageState page_state,
-												   Browser browser, 
-												   String host) 
+	public ElementState enrichImageElement(ElementState element_state,
+											PageState page_state,
+											Browser browser,
+											String host)
 	{	
 		if(element_state instanceof ImageElementState && !element_state.getScreenshotUrl().isEmpty()) {
-			long image_feature_start = System.currentTimeMillis();
 			BufferedImage element_screenshot;
 			try {
 				element_screenshot = ImageIO.read(new URL(element_state.getScreenshotUrl()));
@@ -1807,7 +1824,7 @@ class ServiceUnavailableException extends RuntimeException {
 class FiveZeroThreeException extends RuntimeException {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 452417401491490882L;
 
