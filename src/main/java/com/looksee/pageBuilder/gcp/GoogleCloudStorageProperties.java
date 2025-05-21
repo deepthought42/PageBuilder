@@ -13,6 +13,7 @@ import lombok.Setter;
 @ConstructorBinding
 @AllArgsConstructor
 public class GoogleCloudStorageProperties {
+    
     @Getter
     @Setter
     private String bucketName;
