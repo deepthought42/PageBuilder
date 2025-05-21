@@ -93,7 +93,7 @@ public class BrowserServiceTest {
 	}
 	
 	@Test
-	public void verifyGenerateCssSelectorFromXpath() {		
+	public void verifyGenerateCssSelectorFromXpath() {
 		String xpath = "//body/section[2]/div[1]";
 		String css_selector = BrowserService.generateCssSelectorFromXpath(xpath);
 		assertTrue("body section:nth-child(2) div:nth-child(1)".contentEquals(css_selector));

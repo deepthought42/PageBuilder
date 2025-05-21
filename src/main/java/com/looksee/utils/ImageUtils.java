@@ -21,7 +21,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.looksee.pageBuilder.gcp.GoogleCloudStorage;
 import com.looksee.pageBuilder.models.ColorData;
 import com.looksee.pageBuilder.models.ColorUsageStat;
 import com.looksee.pageBuilder.models.ElementState;
@@ -296,14 +295,14 @@ public class ImageUtils {
 
 	}
 
-	public static String createComposite(BufferedImage onload_screenshot, 
-										 List<ElementState> element_states, 
-										 PageState page_state, 
-										 BrowserType browser) throws IOException 
+	public static BufferedImage createComposite(BufferedImage onload_screenshot,
+												List<ElementState> element_states,
+												PageState page_state,
+												BrowserType browser) throws IOException
 	{
-		URL page_url = new URL(BrowserUtils.sanitizeUrl(page_state.getUrl(), false));
-
-		BufferedImage composite_image = new BufferedImage(page_state.getFullPageWidth(), page_state.getFullPageHeight(), BufferedImage.TYPE_INT_ARGB);
+		BufferedImage composite_image = new BufferedImage(page_state.getFullPageWidth(),
+															page_state.getFullPageHeight(),
+															BufferedImage.TYPE_INT_ARGB);
 		// get graphics to draw..
 		Graphics2D graphics =composite_image.createGraphics();
 		//draw the other image on it
@@ -322,15 +321,12 @@ public class ImageUtils {
 			}
 		}
 		
-		String full_page_screenshot_checksum = ImageUtils.getChecksum(composite_image);
-		String full_page_screenshot_url = GoogleCloudStorage.saveImage(composite_image, page_url.getHost(), full_page_screenshot_checksum, browser);
-		
-		return full_page_screenshot_url;
+		return composite_image;
 	}
 	
-	public static boolean areRowsMatching(BufferedImage current_screenshot, 
+	public static boolean areRowsMatching(BufferedImage current_screenshot,
 			int current_screenshot_row,
-			BufferedImage original_image, 
+			BufferedImage original_image,
 			int original_screenshot_row
 	) {
 		for (int x = 0; x < current_screenshot.getWidth(); x++) {

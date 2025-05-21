@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.pageBuilder.gcp.GoogleCloudStorage;
 import com.looksee.pageBuilder.models.Audit;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.PageState;
@@ -20,8 +21,6 @@ import com.looksee.pageBuilder.models.repository.ElementStateRepository;
 import com.looksee.pageBuilder.models.repository.PageStateRepository;
 
 import io.github.resilience4j.retry.annotation.Retry;
-
-
 
 /**
  * Service layer object for interacting with {@link PageState} database layer
@@ -37,23 +36,25 @@ public class PageStateService {
 
 	@Autowired
 	private ElementStateRepository element_state_repo;
-	
+
+	@Autowired
+	private GoogleCloudStorage googleCloudStorage;
+
 	/**
 	 * Save a {@link PageState} object and its associated objects
 	 * @param page_state
 	 * @return
-	 * @throws Exception 
-	 * 
+	 * @throws Exception
+	 *
 	 * @pre page_state != null
 	 */
 	public PageState save(PageState page_state) throws Exception {
 		assert page_state != null;
-		
+
 		PageState page_state_record = page_state_repo.findByKey(page_state.getKey());
 		
 		if(page_state_record == null) {
 			log.warn("page state wasn't found in database. Saving new page state to neo4j");
-
 			return page_state_repo.save(page_state);
 		}
 
@@ -72,7 +73,7 @@ public class PageStateService {
 	public PageState save(long audit_record_id, PageState page_state) throws Exception {
 		assert page_state != null;
 		
-		PageState page_state_record = page_state_repo.findPageWithKey(audit_record_id, page_state.getKey());		
+		PageState page_state_record = page_state_repo.findPageWithKey(audit_record_id, page_state.getKey());
 		if(page_state_record == null) {
 			log.warn("page state wasn't found in database. Saving new page state to neo4j");
 			return page_state_repo.save(page_state);
@@ -95,15 +96,15 @@ public class PageStateService {
 	}
 	
 	public List<PageState> findByScreenshotChecksumAndPageUrl(String user_id, String url, String screenshot_checksum){
-		return page_state_repo.findByScreenshotChecksumAndPageUrl(url, screenshot_checksum);		
+		return page_state_repo.findByScreenshotChecksumAndPageUrl(url, screenshot_checksum);
 	}
 	
 	public List<PageState> findByFullPageScreenshotChecksum(String screenshot_checksum){
-		return page_state_repo.findByFullPageScreenshotChecksum(screenshot_checksum);		
+		return page_state_repo.findByFullPageScreenshotChecksum(screenshot_checksum);
 	}
 	
 	public PageState findByAnimationImageChecksum(String user_id, String screenshot_checksum){
-		return page_state_repo.findByAnimationImageChecksum(user_id, screenshot_checksum);		
+		return page_state_repo.findByAnimationImageChecksum(user_id, screenshot_checksum);
 	}
 	
 	public List<ElementState> getElementStates(String page_key){
@@ -175,7 +176,7 @@ public class PageStateService {
 	 * @param element_id
 	 * @return true if {@link ElementState} is already connected to page. Otherwise, returns result of attempting to add element to page
 	 */
-	public boolean addElement(long page_id, long element_id) {				
+	public boolean addElement(long page_id, long element_id) {
 		/*
 		if(getElementState(page_id, element_id).isPresent()) {
 			return true;

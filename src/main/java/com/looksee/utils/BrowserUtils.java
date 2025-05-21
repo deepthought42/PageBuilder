@@ -1,7 +1,6 @@
 package com.looksee.utils;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -38,15 +37,12 @@ import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.looksee.pageBuilder.gcp.GoogleCloudStorage;
 import com.looksee.pageBuilder.models.Browser;
 import com.looksee.pageBuilder.models.ColorData;
 import com.looksee.pageBuilder.models.Domain;
 import com.looksee.pageBuilder.models.ElementState;
 import com.looksee.pageBuilder.models.ImageElementState;
-import com.looksee.pageBuilder.models.PageLoadAnimation;
 import com.looksee.pageBuilder.models.PageState;
-import com.looksee.pageBuilder.models.enums.BrowserType;
 
 
 /**
@@ -63,7 +59,7 @@ public class BrowserUtils {
 			if(is_secure) {
 				url = "https://"+url;
 			}
-			else {				
+			else {
 				url = "http://"+url;
 			}
 		}
@@ -94,7 +90,7 @@ public class BrowserUtils {
 	/**
 	 * Reformats url so that it matches the Look-see requirements
 	 * 
-	 * @param url 
+	 * @param url
 	 * 
 	 * @return sanitized url string
 	 * 
@@ -157,7 +153,7 @@ public class BrowserUtils {
 	 * Checks if url is part of domain including sub-domains
 	 *  
 	 * @param domain_host host of {@link Domain domain}
-	 * @param url 
+	 * @param url
 	 * 
 	 * @return true if url is external, otherwise false
 	 * 
@@ -251,10 +247,10 @@ public class BrowserUtils {
 	public static boolean isFile(String url) {
 		assert url != null;
 		
-		return url.endsWith(".zip") 
-				|| url.endsWith(".usdt") 
-				|| url.endsWith(".rss") 
-				|| url.endsWith(".svg") 
+		return url.endsWith(".zip")
+				|| url.endsWith(".usdt")
+				|| url.endsWith(".rss")
+				|| url.endsWith(".svg")
 				|| url.endsWith(".pdf")
 				|| url.endsWith(".m3u8") //apple file extension
 				|| url.endsWith(".usdz") //apple file extension
@@ -352,7 +348,7 @@ public class BrowserUtils {
 	 *  check if link returns valid content ie. no 404 or page not found errors when navigating to it
 	 * @param url
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static boolean doesUrlExist(URL url) throws Exception {
 		assert(url != null);
@@ -403,7 +399,7 @@ public class BrowserUtils {
 	 * @return
 	 * 
 	 * @pre url_str != null
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static boolean doesUrlExist(String url_str) throws Exception {
 		assert url_str != null;
@@ -468,7 +464,6 @@ public class BrowserUtils {
 	}
 
 	private static HttpsURLConnection getHttpsClient(URL url) throws Exception {
-		 
         // Security section START
         TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
@@ -476,18 +471,18 @@ public class BrowserUtils {
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
- 
+
                 @Override
                 public void checkClientTrusted(
                         java.security.cert.X509Certificate[] certs, String authType) {
                 }
- 
+
                 @Override
                 public void checkServerTrusted(
                         java.security.cert.X509Certificate[] certs, String authType) {
                 }
             }};
- 
+
         SSLContext sc = SSLContext.getInstance("SSL");
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
@@ -538,20 +533,20 @@ public class BrowserUtils {
         Pattern pattern = Pattern.compile(patternString);
         Matcher matcher = pattern.matcher(stylesheet);
         while(matcher.find()) {
-        	String font_family_setting = matcher.group();
-        	if(font_family_setting.contains("inherit")) {
-        		continue;
-        	}
-        	font_family_setting = font_family_setting.replaceAll("'", "");
-        	font_family_setting = font_family_setting.replaceAll("\"", "");
-        	font_family_setting = font_family_setting.replaceAll(";", "");
-        	font_family_setting = font_family_setting.replaceAll(":", "");
-        	font_family_setting = font_family_setting.replaceAll(":", "");
-        	font_family_setting = font_family_setting.replaceAll("}", "");
-        	font_family_setting = font_family_setting.replaceAll("!important", "");
-        	font_family_setting = font_family_setting.replaceAll("font-family", "");
-        	
-        	font_families.put(font_family_setting.trim(), Boolean.TRUE);
+			String font_family_setting = matcher.group();
+			if(font_family_setting.contains("inherit")) {
+				continue;
+			}
+			font_family_setting = font_family_setting.replaceAll("'", "");
+			font_family_setting = font_family_setting.replaceAll("\"", "");
+			font_family_setting = font_family_setting.replaceAll(";", "");
+			font_family_setting = font_family_setting.replaceAll(":", "");
+			font_family_setting = font_family_setting.replaceAll(":", "");
+			font_family_setting = font_family_setting.replaceAll("}", "");
+			font_family_setting = font_family_setting.replaceAll("!important", "");
+			font_family_setting = font_family_setting.replaceAll("font-family", "");
+			
+			font_families.put(font_family_setting.trim(), Boolean.TRUE);
         }
         
         return font_families.keySet();
@@ -577,25 +572,25 @@ public class BrowserUtils {
 
 		//extract text matching font-family:.*; from stylesheets
 		//for each match, extract entire string even if it's a list and add string to font-families list
-       for(String prop_setting : extractCssPropertyDeclarations("background-color", stylesheet)) {
-    	   if(prop_setting.startsWith("#")) {
-    		   
-    		   Color color = hex2Rgb(prop_setting.trim().substring(1));
-    		   colors.add(new ColorData(color.getRed() + ","+color.getGreen()+","+color.getBlue()));
-    	   }
-    	   else if( prop_setting.startsWith("rgb") ){
-    		   colors.add(new ColorData(prop_setting));
-    	   }
+		for(String prop_setting : extractCssPropertyDeclarations("background-color", stylesheet)) {
+			if(prop_setting.startsWith("#")) {
+				
+				Color color = hex2Rgb(prop_setting.trim().substring(1));
+				colors.add(new ColorData(color.getRed() + ","+color.getGreen()+","+color.getBlue()));
+			}
+			else if( prop_setting.startsWith("rgb") ){
+				colors.add(new ColorData(prop_setting));
+			}
         }
 
         for(String prop_setting : extractCssPropertyDeclarations("color", stylesheet)) {
-        	if(prop_setting.startsWith("#")) {
-     		   Color color = hex2Rgb(prop_setting.trim().substring(1));
-     		   colors.add(new ColorData(color.getRed() + ","+color.getGreen()+","+color.getBlue()));
-     	   }
-     	   else if( prop_setting.startsWith("rgb") ){
-     		   colors.add(new ColorData(prop_setting));
-     	   }
+			if(prop_setting.startsWith("#")) {
+				Color color = hex2Rgb(prop_setting.trim().substring(1));
+				colors.add(new ColorData(color.getRed() + ","+color.getGreen()+","+color.getBlue()));
+			}
+			else if( prop_setting.startsWith("rgb") ){
+				colors.add(new ColorData(prop_setting));
+			}
         }
         
         return colors;
@@ -617,21 +612,21 @@ public class BrowserUtils {
         Pattern pattern = Pattern.compile(patternString);
         Matcher matcher = pattern.matcher(css);
         while(matcher.find()) {
-        	String setting = matcher.group();
-        	if(setting.contains("inherit")
+			String setting = matcher.group();
+			if(setting.contains("inherit")
 				|| setting.contains("transparent")) {
-        		continue;
-        	}
-        	setting = setting.replaceAll("'", "");
-        	setting = setting.replaceAll("\"", "");
-        	setting = setting.replaceAll(";", "");
-        	setting = setting.replaceAll(":", "");
-        	setting = setting.replaceAll(":", "");
-        	setting = setting.replaceAll("}", "");
-        	setting = setting.replaceAll("!important", "");
-        	setting = setting.replaceAll(prop, "");
+				continue;
+			}
+			setting = setting.replaceAll("'", "");
+			setting = setting.replaceAll("\"", "");
+			setting = setting.replaceAll(";", "");
+			setting = setting.replaceAll(":", "");
+			setting = setting.replaceAll(":", "");
+			setting = setting.replaceAll("}", "");
+			setting = setting.replaceAll("!important", "");
+			setting = setting.replaceAll(prop, "");
 
-        	settings.add(setting);
+			settings.add(setting);
         }
         
         return settings;
@@ -653,10 +648,10 @@ public class BrowserUtils {
 			color_str = expandHex(color_str);
 		}
 		
-	    return new Color(
-	            Integer.valueOf( color_str.substring( 0, 2 ), 16 ),
-	            Integer.valueOf( color_str.substring( 2, 4 ), 16 ),
-	            Integer.valueOf( color_str.substring( 4, 6 ), 16 ) );
+		return new Color(
+				Integer.valueOf( color_str.substring( 0, 2 ), 16 ),
+				Integer.valueOf( color_str.substring( 2, 4 ), 16 ),
+				Integer.valueOf( color_str.substring( 4, 6 ), 16 ) );
 	}
 
 	private static String expandHex(String color_str) {
@@ -680,12 +675,13 @@ public class BrowserUtils {
 		String path = sanitized_url.getPath();
 		path = path.replace("index.html", "");
 		path = path.replace("index.htm", "");
-    	if("/".contentEquals(path.trim())) {
-    		path = "";
-    	}
-    	String page_url = sanitized_url.getHost() + path;
-    	
-    	return page_url.replace("www.", "");
+		
+		if("/".contentEquals(path.trim())) {
+			path = "";
+		}
+		String page_url = sanitized_url.getHost() + path;
+		
+		return page_url.replace("www.", "");
 	}
 
 	public static String getPageUrl(String sanitized_url) {
@@ -729,9 +725,9 @@ public class BrowserUtils {
 		}
 		
 		
-    	String page_url = host + path;
-    	
-    	return page_url.replace("www.", "");
+		String page_url = host + path;
+		
+		return page_url.replace("www.", "");
 	}
 
 	/**
@@ -759,7 +755,7 @@ public class BrowserUtils {
 				https_client.setInstanceFollowRedirects(true);
 				
 				status_code = https_client.getResponseCode();
-				return status_code;		
+				return status_code;
 			}
 			else {
 				log.warn("URL Protocol not found :: "+url.getProtocol());
@@ -768,10 +764,10 @@ public class BrowserUtils {
 		catch(SocketTimeoutException e) {
 			status_code = 408;
 		}
-	    catch(IOException e) {
-	    	status_code = 404;
-	    	e.printStackTrace();
-	    }
+		catch(IOException e) {
+			status_code = 404;
+			e.printStackTrace();
+		}
 		
 		return status_code;
 	}
@@ -781,30 +777,30 @@ public class BrowserUtils {
 	 * 
 	 * @param url
 	 * @return
-	 * @throws MalformedURLException 
+	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
 	public static boolean checkIfSecure(URL url) throws MalformedURLException {
         boolean is_secure = false;
         
         if(url.getProtocol().contentEquals("http")) {
-        	url = new URL("https://"+url.getHost()+url.getPath());
+			url = new URL("https://"+url.getHost()+url.getPath());
         }
         
         try{
-        	HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
-        	con.setConnectTimeout(10000);
-        	con.setReadTimeout(10000);
-        	con.setInstanceFollowRedirects(true);
+			HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
+			con.setConnectTimeout(10000);
+			con.setReadTimeout(10000);
+			con.setInstanceFollowRedirects(true);
 
-        	con.connect();
-        	is_secure = con.getServerCertificates().length > 0;
+			con.connect();
+			is_secure = con.getServerCertificates().length > 0;
         }
         catch(SSLHandshakeException e) {
-        	log.warn("SSLHandshakeException occurred for "+url);
+			log.warn("SSLHandshakeException occurred for "+url);
         }
         catch(Exception e) {
-        	log.warn("an error was encountered while checking for SSL!!!!  "+url);
+			log.warn("an error was encountered while checking for SSL!!!!  "+url);
         	//e.printStackTrace();
         }
         
@@ -816,30 +812,26 @@ public class BrowserUtils {
 	 * @param con
 	 */
 	private static void print_https_cert(HttpsURLConnection con){
-	     
-	    if(con!=null){
-	            
-	    	try {
-	                
-			    System.out.println("Cipher Suite : " + con.getCipherSuite());
-			    System.out.println("\n");
-			                
-			    Certificate[] certs = con.getServerCertificates();
-			    for(Certificate cert : certs){
-			       System.out.println("Cert Type : " + cert.getType());
-			       System.out.println("Cert Hash Code : " + cert.hashCode());
-			       System.out.println("Cert Public Key Algorithm : " 
-			                                    + cert.getPublicKey().getAlgorithm());
-			       System.out.println("Cert Public Key Format : " 
-			                                    + cert.getPublicKey().getFormat());
-			       System.out.println("\n");
-			    }
-		                
-		    } catch (SSLPeerUnverifiedException e) {
-		        e.printStackTrace();
-		    }
-	    }	    
-   }
+		if(con != null){
+			try {
+				System.out.println("Cipher Suite : " + con.getCipherSuite());
+				System.out.println("\n");
+
+				Certificate[] certs = con.getServerCertificates();
+				for(Certificate cert : certs){
+					System.out.println("Cert Type : " + cert.getType());
+					System.out.println("Cert Hash Code : " + cert.hashCode());
+					System.out.println("Cert Public Key Algorithm : "
+											+ cert.getPublicKey().getAlgorithm());
+					System.out.println("Cert Public Key Format : "
+											+ cert.getPublicKey().getFormat());
+					System.out.println("\n");
+				}
+			} catch (SSLPeerUnverifiedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	public static boolean doesElementHaveBackgroundColor(WebElement web_element) {
 		String background_color = web_element.getCssValue("background-color");
@@ -887,10 +879,10 @@ public class BrowserUtils {
 	 * 
 	 * @throws MalformedURLException
 	 */
-	public static String formatUrl(String protocol, 
-								   String host, 
-								   String href, 
-								   boolean is_secure
+	public static String formatUrl(String protocol,
+									String host,
+									String href,
+									boolean is_secure
    ) throws MalformedURLException {
 		assert host != null;
 		assert !host.isEmpty();
@@ -953,7 +945,7 @@ public class BrowserUtils {
 	{
 		assert sanitized_url != null;
 		assert !sanitized_url.isEmpty();
-  
+
 		if(BrowserUtils.isFile(sanitized_url)
 			|| BrowserUtils.isJavascript(sanitized_url)
 			|| sanitized_url.startsWith("itms-apps:")
@@ -1029,8 +1021,8 @@ public class BrowserUtils {
 		boolean parent_found = false;
 		
 		List<ElementState> elements = element_states.parallelStream()
-													.filter(p -> p.getOwnedText() != null 
-																	&& !p.getOwnedText().isEmpty() 
+													.filter(p -> p.getOwnedText() != null
+																	&& !p.getOwnedText().isEmpty()
 																	&& !p.getOwnedText().trim().isEmpty())
 													.distinct()
 													.collect(Collectors.toList());
@@ -1039,7 +1031,7 @@ public class BrowserUtils {
 		for(ElementState element1: elements) {
 			for(ElementState element2: elements) {
 				if(!element1.equals(element2) 
-						&& element2.getAllText().contains(element1.getAllText()) 
+						&& element2.getAllText().contains(element1.getAllText())
 						&& element2.getXpath().contains(element1.getXpath())) {
 					parent_found = true;
 					break;
@@ -1067,72 +1059,10 @@ public class BrowserUtils {
 	}
 	
 	/**
-	 * Watches for an animation that occurs during page load
-	 * 
-	 * @param browser
-	 * @param host
-	 * @param user_id TODO
-	 * @return
-	 * @throws IOException
-	 * 
-	 * @pre browser != null
-	 * @pre host != null
-	 * @pre host != empty
-	 */
-	public static PageLoadAnimation getLoadingAnimation(Browser browser, 
-														String host
-	) throws IOException {
-		assert browser != null;
-		assert host != null;
-		assert !host.isEmpty();
-		
-		List<String> image_checksums = new ArrayList<String>();
-		List<String> image_urls = new ArrayList<String>();
-		boolean transition_detected = false;
-		long start_ms = System.currentTimeMillis();
-		long total_time = System.currentTimeMillis();
-		
-		Map<String, Boolean> animated_state_checksum_hash = new HashMap<String, Boolean>();
-		String last_checksum = null;
-		String new_checksum = null;
-
-		do{
-			//get element screenshot
-			BufferedImage screenshot = browser.getViewportScreenshot();
-			
-			//calculate screenshot checksum
-			new_checksum = ImageUtils.getChecksum(screenshot);
-		
-			transition_detected = !new_checksum.equals(last_checksum);
-
-			if( transition_detected ){
-				if(animated_state_checksum_hash.containsKey(new_checksum)){
-					return null;
-				}
-				image_checksums.add(new_checksum);
-				animated_state_checksum_hash.put(new_checksum, Boolean.TRUE);
-				last_checksum = new_checksum;
-				image_urls.add(GoogleCloudStorage.saveImage(screenshot, 
-															 host, 
-															 new_checksum, 
-															 BrowserType.create(browser.getBrowserName())));
-			}
-		}while((System.currentTimeMillis() - start_ms) < 1000 && (System.currentTimeMillis() - total_time) < 10000);
-		
-		if(!transition_detected && new_checksum.equals(last_checksum) && image_checksums.size()>2){
-			return new PageLoadAnimation(image_urls, 
-										 image_checksums, 
-										 BrowserUtils.sanitizeUrl(browser.getDriver().getCurrentUrl(), true));
-		}
-
-		return null;
-	}
-	
-	/**
 	 * Checks if a {@link WebElement element} is currently hidden
-	 * 
+	 *
 	 * @param web_element {@link WebElement element}
-	 * 
+	 *
 	 * @return returns true if it is hidden, otherwise returns false
 	 */
 	public static boolean isHidden(WebElement web_element) {
@@ -1142,9 +1072,9 @@ public class BrowserUtils {
 
 	/**
 	 * Checks if a {@link WebElement element} is currently hidden
-	 * 
+	 *
 	 * @param web_element {@link WebElement element}
-	 * 
+	 *
 	 * @return returns true if it is hidden, otherwise returns false
 	 */
 	public static boolean isHidden(Point location, Dimension size) {

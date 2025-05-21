@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.looksee.pageBuilder.gcp.GoogleCloudStorage;
 import com.looksee.pageBuilder.gcp.PubSubErrorPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubJourneyVerifiedPublisherImpl;
 import com.looksee.pageBuilder.gcp.PubSubPageAuditPublisherImpl;
@@ -92,6 +93,9 @@ public class AuditController {
 	
 	@Autowired
 	private DomainMapService domain_map_service;
+	
+	@Autowired
+	private GoogleCloudStorage googleCloudStorage;
 	
 	@Autowired
 	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
@@ -174,17 +178,17 @@ public class AuditController {
 			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 			page_state = browser_service.buildPageState(url, browser, is_secure, http_status, url_msg.getAuditId());
 		
-			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND 
+			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND
 			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS,
 			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getAuditId(),
 																				page_state.getKey());
 			
 			if(page_state_record == null 
-					|| element_state_service.getAllExistingKeys(page_state_record.getId()).isEmpty()) 
+					|| element_state_service.getAllExistingKeys(page_state_record.getId()).isEmpty())
 			{
 				log.warn("Extracting element states...");
 				List<String> xpaths = browser_service.extractAllUniqueElementXpaths(page_state.getSrc());
-				List<ElementState> element_states = browser_service.getDomElementStates(	page_state, 
+				List<ElementState> element_states = browser_service.getDomElementStates(	page_state,
 																							xpaths,
 																							browser,
 																							url_msg.getAuditId());
