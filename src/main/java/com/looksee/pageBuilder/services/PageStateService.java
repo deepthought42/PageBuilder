@@ -55,12 +55,6 @@ public class PageStateService {
 		
 		if(page_state_record == null) {
 			log.warn("page state wasn't found in database. Saving new page state to neo4j");
-			// Generate a unique key for the HTML content
-			String contentKey = BrowserService.extractHost(page_state.getUrl())+"/pages/" + page_state.getKey() + ".html";
-
-			// Upload content to GCS and get the public URL
-			String gcsUrl = googleCloudStorage.uploadHtmlContent(page_state.getSrc(), contentKey);
-			page_state.setSrc(gcsUrl);
 			return page_state_repo.save(page_state);
 		}
 
