@@ -22,7 +22,7 @@ public class SeleniumConfiguration {
     @PostConstruct
     public void initializeSeleniumUrls() {
         if (seleniumUrls != null && !seleniumUrls.trim().isEmpty()) {
-            BrowserConnectionHelper.setConfiguredSeleniumUrls(seleniumUrls);
+            BrowserConnectionHelper.setConfiguredSeleniumUrls(seleniumUrls.split(","));
         }
     }
 } 

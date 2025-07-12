@@ -1,15 +1,14 @@
 package com.looksee.browsing;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.looksee.pageBuilder.models.enums.Action;
-
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.looksee.models.enums.Action;
 
 /**
  * Constructs {@linkplain Actions} provided by Selenium
