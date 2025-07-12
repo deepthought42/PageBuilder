@@ -13,7 +13,7 @@ import com.looksee.browsing.helpers.BrowserConnectionHelper;
 @Configuration
 public class SeleniumConfiguration {
     
-    @Value("${selenium.urls:}")
+    @Value("${selenium.urls}")
     private String seleniumUrls;
     
     /**
