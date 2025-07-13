@@ -22,6 +22,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install core JAR
+        run: mvn install:install-file -Dfile=libs/core-0.2.6.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.2.6 -Dpackaging=jar
+        
       - name: Download core JAR
         run: bash scripts/download-core.sh
   
