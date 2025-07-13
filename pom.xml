@@ -355,8 +355,6 @@
             <groupId>com.looksee</groupId>
             <artifactId>core</artifactId>
             <version>${looksee-core.version}</version>
-			<scope>system</scope>
-            <systemPath>${pom.basedir}/libs/core-${looksee-core.version}.jar</systemPath>
         </dependency>
 	</dependencies>
 
