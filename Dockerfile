@@ -12,7 +12,7 @@ COPY pom.xml .
 COPY scripts/download-core.sh ./scripts/download-core.sh
 RUN chmod +x ./scripts/download-core.sh
 RUN bash ./scripts/download-core.sh
-RUN mvn install:install-file -Dfile=libs/core-0.2.6.jar -DgroupId=com.github.deepthought42 -DartifactId=core -Dversion=0.2.6 -Dpackaging=jar
+RUN mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.github.deepthought42 -DartifactId=core -Dversion=0.3.1 -Dpackaging=jar
 
 # Copy the rest of the project source code
 COPY src ./src
