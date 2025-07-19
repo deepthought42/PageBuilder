@@ -19,11 +19,15 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Download core JAR
         run: bash scripts/download-core.sh
+
+      - name: Install core JAR
+        run: mvn install:install-file -Dfile=libs/core-0.3.15.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.15 -Dpackaging=jar
+        
   
       - name: Test with Maven
         run: mvn test
