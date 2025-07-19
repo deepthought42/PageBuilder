@@ -286,23 +286,6 @@
     
     <repositories>
         <repository>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
-			<id>atlassian-public</id>
-			<url>https://packages.atlassian.com/maven/repository/public</url>
-		</repository>
-        <repository>
             <id>github</id>
             <name>GitHub LookseeCore Package</name>
             <url>https://maven.pkg.github.com/deepthought42/LookseeCore</url>
