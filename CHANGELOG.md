@@ -1,3 +1,10 @@
+## [1.2.6](https://github.com/deepthought42/PageBuilder/compare/v1.2.5...v1.2.6) (2025-07-19)
+
+
+### Bug Fixes
+
+* upgrade to 0.3.16 ([73ba16d](https://github.com/deepthought42/PageBuilder/commit/73ba16d87397d9dab8a5e0683495e8d2ff8d9620))
+
 ## [1.2.5](https://github.com/deepthought42/PageBuilder/compare/v1.2.4...v1.2.5) (2025-07-19)
 
 
