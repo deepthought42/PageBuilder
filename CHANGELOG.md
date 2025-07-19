@@ -1,3 +1,16 @@
+## [1.2.5](https://github.com/deepthought42/PageBuilder/compare/v1.2.4...v1.2.5) (2025-07-19)
+
+
+### Bug Fixes
+
+* add selenium config ([8475094](https://github.com/deepthought42/PageBuilder/commit/8475094d2650735e715819d60222f88524234b84))
+* core upgrade to 0.3.15 and refactor remaining classes and move some to core library ([8d37486](https://github.com/deepthought42/PageBuilder/commit/8d374869b7b4a644d07e1c78b1e20c4bfec3f65b))
+* download core ([eaf7b0b](https://github.com/deepthought42/PageBuilder/commit/eaf7b0baac6ce05f9f76e9a8e7fcea6c192aab8d))
+* prevent pipeline running for push to master ([005423f](https://github.com/deepthought42/PageBuilder/commit/005423fd4f10b1ad22de40d9bec40b66244568f9))
+* type in core jar file name for CI step ([ed389a7](https://github.com/deepthought42/PageBuilder/commit/ed389a780ca17821432fde3e3e7782ccbf25b7b6))
+* typo in value selenium urls ([743f21a](https://github.com/deepthought42/PageBuilder/commit/743f21ab445e845a3be87ad2e16f9291635d6116))
+* update core and config selenium ([0fe69a8](https://github.com/deepthought42/PageBuilder/commit/0fe69a889d92d6f2b335d8ea1df374b70cf4bb57))
+
 ## [1.2.4](https://github.com/deepthought42/PageBuilder/compare/v1.2.3...v1.2.4) (2025-05-13)
 
 
