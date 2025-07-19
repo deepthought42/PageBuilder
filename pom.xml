@@ -283,12 +283,4 @@
 			</plugin>
 		</plugins>
 	</build>
-    
-    <repositories>
-        <repository>
-            <id>github</id>
-            <name>GitHub LookseeCore Package</name>
-            <url>https://maven.pkg.github.com/deepthought42/LookseeCore</url>
-        </repository>
-    </repositories>
 </project>
