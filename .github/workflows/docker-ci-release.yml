@@ -26,11 +26,7 @@ jobs:
         run: bash scripts/download-core.sh
 
       - name: Install core JAR
-<<<<<<< Updated upstream
-        run: mvn install:install-file -Dfile=libs/core-0.3.15jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.15 -Dpackaging=jar
-=======
         run: mvn install:install-file -Dfile=libs/core-0.3.16.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.16 -Dpackaging=jar
->>>>>>> Stashed changes
       
       - name: Test with Maven
         run: mvn test
