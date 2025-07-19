@@ -14,7 +14,7 @@
         <java.version>17</java.version>
 		<springboot.version>2.6.13</springboot.version>
 		<lombok.version>1.18.34</lombok.version>
-		<looksee-core.version>0.3.1</looksee-core.version>
+		<looksee-core.version>0.3.15</looksee-core.version>
     </properties>
     
     <dependencyManagement>
@@ -87,49 +87,6 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.15</version>
 		</dependency>
-		
-
-		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-neo4j -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-neo4j</artifactId>
-			<version>${springboot.version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-bolt-driver -->
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-ogm-bolt-driver</artifactId>
-			<version>3.2.38</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
-			<version>${springboot.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
-			<version>2.1.5</version>
-		</dependency>
-
-		<!-- [START pubsub_spring_cloud_stream_binder] -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>spring-cloud-gcp-pubsub-stream-binder</artifactId>
-			<version>3.2.1</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.google.cloud/spring-cloud-gcp-starter-secretmanager -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>spring-cloud-gcp-starter-secretmanager</artifactId>
-			<version>4.3.0</version>
-		</dependency>
-
 
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
 		<dependency>
@@ -172,30 +129,6 @@
 			<artifactId>xsoup</artifactId>
 			<version>0.3.1</version>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-gcp-dependencies</artifactId>
-			<version>1.2.5.RELEASE</version>
-			<type>pom</type>
-			<scope>import</scope>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.google.cloud/spring-cloud-gcp-starter-storage -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>spring-cloud-gcp-starter-vision</artifactId>
-			<version>3.4.0</version>
-		</dependency>
-
-
-				
-		<!-- https://mvnrepository.com/artifact/com.google.cloud/spring-cloud-gcp-starter-storage -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>spring-cloud-gcp-starter-storage</artifactId>
-			<version>3.4.0</version>
-		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/net.sf.cssbox/jstyleparser -->
 		<dependency>
@@ -230,82 +163,6 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
         </dependency>
-        
-		<!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-language -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>google-cloud-language</artifactId>
-			<version>2.7.0</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>${selenium-version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-http-jdk-client</artifactId>
-			<version>${selenium-version}</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-api -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-api</artifactId>
-			<version>${selenium-version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-chrome-driver</artifactId>
-			<version>${selenium-version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-remote-driver -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-remote-driver</artifactId>
-			<version>${selenium-version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.assertthat/selenium-shutterbug -->
-		
-		<dependency>
-			<groupId>com.assertthat</groupId>
-			<artifactId>selenium-shutterbug</artifactId>
-			<version>1.6</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.seleniumhq.selenium</groupId>
-					<artifactId>selenium-java</artifactId>
-				</exclusion>
-	     	</exclusions>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.getsentry.raven/raven-logback -->
-		<dependency>
-			<groupId>com.getsentry.raven</groupId>
-			<artifactId>raven-logback</artifactId>
-			<version>8.0.3</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/io.whelk.flesch.kincaid/whelk-flesch-kincaid -->
-		<dependency>
-			<groupId>io.whelk.flesch.kincaid</groupId>
-			<artifactId>whelk-flesch-kincaid</artifactId>
-			<version>0.1.6</version>
-		</dependency>
-						
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310 -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>2.14.1</version>
-		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/ru.yandex.qatools.ashot/ashot -->
 		<dependency>

@@ -66,7 +66,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * API Controller with main endpoint for running the page builder script
- * 
  */
 @RestController
 @Tag(name = "Audit", description = "API endpoints for building page objects")
