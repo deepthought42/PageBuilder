@@ -265,8 +265,13 @@ public class AuditController {
 																						url_msg.getUrl().toString(),
 																						"An exception occurred while building page state "+url_msg.getUrl()+".\n"+e.getMessage());
 
-			String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
-			pubSubErrorPublisherImpl.publish(element_extraction_str);
+			try {
+				String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
+				pubSubErrorPublisherImpl.publish(element_extraction_str);
+			}
+			catch(JsonProcessingException serializationException) {
+				log.error("Failed to serialize PageDataExtractionError for publication", serializationException);
+			}
 			log.error("An exception occurred that bubbled up to the page state builder", e);
 			
 			return new ResponseEntity<String>("Error building page state for url "+url_msg.getUrl(), HttpStatus.INTERNAL_SERVER_ERROR);
