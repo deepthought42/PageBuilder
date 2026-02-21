@@ -6,18 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Schema definition for the audit start message
+ * Schema definition for the decoded audit start payload.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(
     name = "AuditStartMessage",
-    description = "Message containing the initial audit request details",
+    description = "Decoded audit payload containing request details",
     requiredProperties = {"url", "type", "accountId", "auditId"}
 )
-public class AuditStartMessageSchema extends MessageSchema{
-    
+public class AuditStartMessageSchema {
+
     @Schema(
         description = "URL to be processed and audited",
         example = "https://example.com",
@@ -47,4 +47,4 @@ public class AuditStartMessageSchema extends MessageSchema{
         required = true
     )
     private String auditId;
-} 
+}

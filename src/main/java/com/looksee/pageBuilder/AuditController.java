@@ -2,11 +2,11 @@ package com.looksee.pageBuilder;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -21,11 +21,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.looksee.gcp.GoogleCloudStorage;
 import com.looksee.gcp.PubSubErrorPublisherImpl;
 import com.looksee.gcp.PubSubJourneyVerifiedPublisherImpl;
 import com.looksee.gcp.PubSubPageAuditPublisherImpl;
@@ -94,9 +92,6 @@ public class AuditController {
 	private DomainMapService domain_map_service;
 	
 	@Autowired
-	private GoogleCloudStorage googleCloudStorage;
-	
-	@Autowired
 	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
 	
 	@Autowired
@@ -119,6 +114,11 @@ public class AuditController {
 			content = @Content(schema = @Schema(implementation = String.class))
 		),
 		@ApiResponse(
+			responseCode = "400",
+			description = "Invalid request payload; expected message.data with Base64-encoded AuditStartMessage JSON",
+			content = @Content(schema = @Schema(implementation = String.class))
+		),
+		@ApiResponse(
 			responseCode = "500",
 			description = "Internal server error while processing audit message",
 			content = @Content(schema = @Schema(implementation = String.class))
@@ -132,11 +132,23 @@ public class AuditController {
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	public ResponseEntity<String> receiveMessage(
 		@Valid @RequestBody BodySchema body
-	) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException, MalformedURLException {
-		String data = body.getMessage().getData();
-	    String target = !data.isEmpty() ? new String(Base64.getMimeDecoder().decode(data)) : "";
-	    ObjectMapper input_mapper = new ObjectMapper();
-        AuditStartMessage url_msg = input_mapper.readValue(target, AuditStartMessage.class);
+	) throws ExecutionException, InterruptedException, MalformedURLException {
+		if(body == null || body.getMessage() == null || body.getMessage().getData() == null || body.getMessage().getData().isBlank()) {
+			log.warn("Received empty message body while attempting to extract page data");
+			return new ResponseEntity<String>("Request must include message.data containing a Base64-encoded AuditStartMessage payload", HttpStatus.BAD_REQUEST);
+		}
+
+		AuditStartMessage url_msg;
+		try {
+			String data = body.getMessage().getData();
+			String target = new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8);
+			ObjectMapper input_mapper = new ObjectMapper();
+			url_msg = input_mapper.readValue(target, AuditStartMessage.class);
+		}
+		catch(IllegalArgumentException | JsonProcessingException e) {
+			log.warn("Received an invalid message payload", e);
+			return new ResponseEntity<String>("Request message.data must be valid Base64-encoded JSON for AuditStartMessage", HttpStatus.BAD_REQUEST);
+		}
         
 		URL url = new URL(BrowserUtils.sanitizeUserUrl(url_msg.getUrl()));
 		
@@ -245,7 +257,7 @@ public class AuditController {
 				audit_record_topic.publish(audit_record_json);
 			}
 			
-			return new ResponseEntity<String>("Successfully sent message to verifed journey topic", HttpStatus.OK);
+			return new ResponseEntity<String>("Successfully sent message to verified journey topic", HttpStatus.OK);
 		}
 		catch(Exception e) {
 			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getAccountId(),
@@ -255,8 +267,7 @@ public class AuditController {
 
 			String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
 			pubSubErrorPublisherImpl.publish(element_extraction_str);
-			log.error("An exception occurred that bubbled up to the page state builder : "+e.getMessage());
-			e.printStackTrace();
+			log.error("An exception occurred that bubbled up to the page state builder", e);
 			
 			return new ResponseEntity<String>("Error building page state for url "+url_msg.getUrl(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -267,20 +278,4 @@ public class AuditController {
 		}
 	}
 	
-	/**
-	 * Retrieves keys for all existing element states that are connected the the page with the given page state id
-	 * 
-	 * NOTE: This is best for a database with significant memory as the size of data can be difficult to process all at once
-	 * on smaller machines
-	 * 
-	 * @param page_state_id
-	 * @param element_states
-	 * @return {@link List} of {@link ElementState} ids 
-	 */
-	private List<ElementState> saveNewElements(long page_state_id, List<ElementState> element_states) {
-		return element_states.stream()
-							   .map(element -> element_state_service.save(element))
-							   .collect(Collectors.toList());
-	}	
-
 }
