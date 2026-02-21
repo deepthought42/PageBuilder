@@ -162,7 +162,7 @@ public class AuditController {
 
 			//usually code 301 is returned which is a redirect, which is usually transferring to https
 			if(http_status == 404 || http_status == 408) {
-				log.warn("Recieved " + http_status + "status for link :: "+url_msg.getUrl());
+				log.warn("Received " + http_status + "status for link :: "+url_msg.getUrl());
 				//send message to audit manager letting it know that an error occurred
 				PageDataExtractionError page_extraction_err = new PageDataExtractionError(url_msg.getAccountId(),
 																						  url_msg.getAuditId(),
