@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -224,7 +223,7 @@ class AuditControllerTest {
             when(browserService.buildPageState(any(URL.class), eq(browser), eq(true), eq(200), eq(AUDIT_ID)))
                     .thenReturn(pageState);
             when(auditRecordService.findPageWithKey(AUDIT_ID, "existing-key")).thenReturn(existingPageState);
-            when(elementStateService.getAllExistingKeys(2L)).thenReturn(new HashSet<>(List.of("key1")));
+            when(elementStateService.getAllExistingKeys(2L)).thenReturn(List.of("key1"));
             when(pageStateService.getElementStates(2L)).thenReturn(new ArrayList<>());
 
             ResponseEntity<String> resp = controller.receiveMessage(body);
@@ -369,7 +368,7 @@ class AuditControllerTest {
                     .thenReturn(pageState);
             when(auditRecordService.findPageWithKey(AUDIT_ID, "pk")).thenReturn(existingPageState);
             // Empty set of keys triggers rebuild
-            when(elementStateService.getAllExistingKeys(3L)).thenReturn(new HashSet<>());
+            when(elementStateService.getAllExistingKeys(3L)).thenReturn(new ArrayList<>());
             when(browserService.extractAllUniqueElementXpaths("<html></html>")).thenReturn(List.of("//span"));
             when(browserService.getDomElementStates(eq(pageState), anyList(), eq(browser), eq(AUDIT_ID)))
                     .thenReturn(new ArrayList<>());
