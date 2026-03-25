@@ -68,12 +68,12 @@ class AuditControllerTest {
     private AuditController controller;
 
     private static final String TEST_URL = "https://example.com";
-    private static final String ACCOUNT_ID = "acct-1";
+    private static final long ACCOUNT_ID = 1L;
     private static final long AUDIT_ID = 100L;
 
-    private String encodeAuditMessage(String url, String type, String accountId, long auditId) {
+    private String encodeAuditMessage(String url, String type, long accountId, long auditId) {
         String json = String.format(
-                "{\"url\":\"%s\",\"type\":\"%s\",\"accountId\":\"%s\",\"auditId\":%d}",
+                "{\"url\":\"%s\",\"type\":\"%s\",\"accountId\":%d,\"auditId\":%d}",
                 url, type, accountId, auditId);
         return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
     }
