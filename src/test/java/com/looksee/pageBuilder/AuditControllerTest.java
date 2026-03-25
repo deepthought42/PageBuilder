@@ -206,7 +206,6 @@ class AuditControllerTest {
         BodySchema body = buildBody(data);
 
         PageState pageState = mock(PageState.class);
-        when(pageState.getId()).thenReturn(2L);
         when(pageState.getKey()).thenReturn("existing-key");
 
         PageState existingPageState = mock(PageState.class);
