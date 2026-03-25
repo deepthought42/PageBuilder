@@ -203,9 +203,6 @@ public class AuditController {
 																							xpaths,
 																							browser,
 																							url_msg.getAuditId());
-				//String host = url.getHost();
-				//element_states = browser_service.enrichElementStates(element_states, page_state, browser, host);
-				//element_states = ElementStateUtils.enrichBackgroundColor(element_states).collect(Collectors.toList());
 				page_state.setElements(element_states);
 				page_state = page_state_service.save(page_state);
 			}
