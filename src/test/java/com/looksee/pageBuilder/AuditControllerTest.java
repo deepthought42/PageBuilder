@@ -431,7 +431,7 @@ class AuditControllerTest {
     }
 
     @Test
-    void exceptionDuringErrorSerializationLogsAndReturns500() throws Exception {
+    void exceptionDuringErrorPublishingPropagatesAndClosesBrowser() throws Exception {
         String data = encodeAuditMessage(TEST_URL, "PAGE", ACCOUNT_ID, AUDIT_ID);
         BodySchema body = buildBody(data);
 
@@ -445,12 +445,11 @@ class AuditControllerTest {
             when(browserService.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY)).thenReturn(browser);
             when(browserService.buildPageState(any(URL.class), eq(browser), eq(true), eq(200), eq(AUDIT_ID)))
                     .thenThrow(new RuntimeException("build failure"));
-            // Make the error publishing itself throw
+            // publish() throws RuntimeException, which is not caught by the inner
+            // catch(JsonProcessingException) and propagates out of the method
             doThrow(new RuntimeException("publish failed")).when(pubSubErrorPublisherImpl).publish(anyString());
 
-            ResponseEntity<String> resp = controller.receiveMessage(body);
-
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
+            assertThrows(RuntimeException.class, () -> controller.receiveMessage(body));
             verify(browser).close();
         }
     }
