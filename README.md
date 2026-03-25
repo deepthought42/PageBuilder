@@ -2,96 +2,203 @@
 
 # PageBuilder
 
-Service responsible for building `PageState` and related objects from incoming Pub/Sub audit messages.
+A Spring Boot microservice that builds `PageState` objects and their associated `ElementState` data from incoming Google Cloud Pub/Sub audit messages. It acts as the page-extraction step in the Looksee audit pipeline, receiving a URL, loading the page via a headless browser, persisting the resulting DOM structure, and publishing downstream messages for further processing.
+
+## Architecture
+
+```
+Pub/Sub (AuditStart) ──> PageBuilder ──> Pub/Sub (PageCreated / PageAudit / JourneyVerified / AuditError)
+                              │
+                              ├── BrowserService  (headless Chrome)
+                              ├── Neo4j           (page/element/journey persistence)
+                              └── GCS             (screenshot storage)
+```
+
+### Key Components
+
+| Class | Purpose |
+|-------|---------|
+| `Application` | Spring Boot entry point. |
+| `AuditController` | Single `POST /` endpoint that decodes Pub/Sub push messages, orchestrates page building, and publishes results. |
+| `BodySchema` / `MessageSchema` / `AuditStartMessageSchema` | OpenAPI-annotated DTOs for the Pub/Sub push envelope. |
+
+### Request Flow
+
+1. Google Cloud Pub/Sub pushes a message to `POST /`.
+2. The controller decodes the Base64 `message.data` field into an `AuditStartMessage`.
+3. The target URL is loaded via headless Chrome; HTTP status and security are checked.
+4. If the HTTP status is `404` or `408`, an error message is published and processing stops.
+5. A `PageState` (DOM snapshot) is created or retrieved from the database.
+6. Element states (individual DOM nodes) are extracted and persisted.
+7. Depending on the audit level:
+   - **PAGE** -- the page is attached to the audit record and a `PageAuditMessage` is published.
+   - **DOMAIN** -- a `DomainMap` is created/updated, a single-step `Journey` is saved, and both `PageCreated` and `JourneyVerified` messages are published.
+
+## Prerequisites
+
+- **Java 17** (Temurin recommended)
+- **Maven 3.8+**
+- **Docker** (for containerised builds)
+- **Google Cloud SDK** (for GCR / Pub/Sub interaction)
+- **LookseeCore JAR** -- downloaded automatically by `scripts/download-core.sh`
 
 ## Getting Started
 
-### Launch JAR locally
-
-#### Command Line Interface (CLI)
+### Build and Run Locally
 
 ```bash
-mvn clean install
-java -ea -jar target/Look-see-#.#.#.jar
-```
+# Download the LookseeCore dependency
+bash scripts/download-core.sh
 
-> NOTE: The `-ea` flag runs the JVM with assertions enabled.
+# Install it into the local Maven repository
+mvn install:install-file \
+  -Dfile=libs/core-$(sed -n 's:.*<looksee-core.version>\(.*\)</looksee-core.version>.*:\1:p' pom.xml | head -n1).jar \
+  -DgroupId=com.looksee -DartifactId=core \
+  -Dversion=$(sed -n 's:.*<looksee-core.version>\(.*\)</looksee-core.version>.*:\1:p' pom.xml | head -n1) \
+  -Dpackaging=jar
+
+# Build
+mvn clean install
+
+# Run (with assertions enabled)
+java -ea -jar target/PageBuilder-*.jar
+```
 
 ### Docker
 
 ```bash
-mvn clean install
-docker build --tag look-see .
-docker run -p 80:80 -p 8080:8080 -p 9080:9080 -p 443:443 --name look-see look-see
+# Build
+docker build -t deepthought42/page-builder:latest .
+
+# Run
+docker run -p 8080:8080 -p 80:80 deepthought42/page-builder:latest
 ```
 
-### Deploy Docker container to GCR
+### Deploy to GCR
 
 ```bash
-gcloud auth print-access-token | sudo docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
-sudo docker build --no-cache -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/#.#.# .
-sudo docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/#.#.#
+gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
 
-sudo docker build --no-cache -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/page-builder .
-sudo docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/page-builder
+docker build --no-cache \
+  -t us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/<VERSION> .
+
+docker push us-central1-docker.pkg.dev/cosmic-envoy-280619/page-builder/<VERSION>
 ```
+
+## API
+
+The service exposes a single endpoint:
+
+### `POST /`
+
+Accepts a Pub/Sub push message envelope containing a Base64-encoded `AuditStartMessage`.
+
+**Request body:**
+
+```json
+{
+  "message": {
+    "data": "<Base64-encoded AuditStartMessage JSON>"
+  }
+}
+```
+
+**Decoded `AuditStartMessage` fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `url` | `string` | URL to audit |
+| `type` | `string` | Audit level: `PAGE` or `DOMAIN` |
+| `accountId` | `string` | Account identifier |
+| `auditId` | `long` | Audit record identifier |
+
+**Responses:**
+
+| Status | Meaning |
+|--------|---------|
+| `200` | Message processed successfully |
+| `400` | Missing or malformed payload |
+| `500` | Internal processing error |
+
+Interactive API docs are available at `/swagger-ui.html` when the service is running (powered by SpringDoc OpenAPI).
+
+## Testing
+
+### Running Tests
+
+```bash
+mvn test
+```
+
+### Test Coverage
+
+Tests use **JUnit 5** and **Mockito** with `MockedStatic` for static utility methods. A **JaCoCo** coverage gate is configured in the POM to enforce a minimum 90 % line-coverage ratio.
+
+After running `mvn test`, view the HTML coverage report at:
+
+```
+target/site/jacoco/index.html
+```
+
+### Test Structure
+
+| Test Class | Covers |
+|------------|--------|
+| `ApplicationTest` | Boot entry point and system property setup |
+| `AuditControllerTest` | All controller branches: input validation, HTTP error statuses, PAGE audit path, DOMAIN audit path, exception handling, browser cleanup |
+| `BodySchemaTest` | Lombok-generated constructors, getters, setters, equals, hashCode, toString |
+| `MessageSchemaTest` | Same as above for the message wrapper |
+| `AuditStartMessageSchemaTest` | Same as above for the decoded payload schema |
+
+### Sending a Manual Test Message
+
+1. Log in to the Google Cloud Console and navigate to **Pub/Sub**.
+2. Find the audit-start topic and select **Messages**.
+3. Publish a message with the following JSON body (Base64-encode it as the `data` field):
+
+```json
+{
+  "url": "https://example.com",
+  "type": "PAGE",
+  "accountId": "5",
+  "auditId": 11
+}
+```
+
+## Configuration
+
+Key configuration files:
+
+| File | Purpose |
+|------|---------|
+| `src/main/resources/application.properties` | Server ports, logging, Pub/Sub topics, Neo4j, GCS |
+| `src/main/resources/application.yml` | Resilience4j retry policies |
+| `src/main/resources/logback.xml` | Logging appenders (console + file) |
+
+## CI/CD
+
+Two GitHub Actions workflows drive the pipeline:
+
+- **`docker-ci-test.yml`** -- Runs on pull requests to `master`. Builds the project, runs tests, and performs a Docker build.
+- **`docker-ci-release.yml`** -- Runs on pushes to `master`. Runs tests, bumps the version via Semantic Release, builds and pushes the Docker image to DockerHub, and creates a GitHub Release.
 
 ## Security
 
-### Generating a new PKCS12 certificate for SSL
+### Generating a PKCS12 certificate for SSL
 
 ```bash
 openssl pkcs12 -export -inkey private.key -in certificate.crt -out api_key.p12
 ```
 
-## Testing
+## Migration Notes
 
-### Sending URL message
-
-1. Log in to Google Cloud Console and navigate to Pub/Sub.
-2. Under topics, find the URL topic and select **Messages**.
-3. Send a message like:
-
-```json
-{
-  "domainId": 1,
-  "accountId": 5,
-  "domainAuditRecordId": 11,
-  "pageAuditId": -1,
-  "url": "look-see.com"
-}
-```
-
-## Code Review Summary (2026-02)
-
-A targeted review was completed in this repo with emphasis on input safety, error handling, dead code, and documentation consistency.
-
-### Fixes applied in this change set
-
-1. **Input validation and defensive request handling**
-   - Added explicit null/blank checks for `message.data` and now return `400 Bad Request` for malformed input.
-   - Added handling for invalid Base64 / invalid JSON payloads before main processing begins.
-2. **Logging improvements**
-   - Replaced `printStackTrace()` with structured `log.error(..., e)` logging.
-3. **Code cleanup**
-   - Removed an unused helper method (`saveNewElements`) and an unused injected field.
-   - Corrected typo in success response message (`verifed` -> `verified`).
-
-### Follow-up items addressed in this update
-
-1. Added a `400` response to the controller OpenAPI docs so the API contract matches runtime behavior for invalid payloads.
-
-2. Refactored `AuditStartMessageSchema` to represent only decoded payload fields and no longer inherit from envelope schema types.
-
-3. Removed duplicate `jackson-annotations` declaration from `pom.xml` to reduce dependency drift/noise.
-
-4. Remaining recommendation: continue reducing explicit versions that are already managed by the Spring dependency BOM when repository dependency resolution is stable in CI.
-
-## Migration notes
-
-- 01-06-2023: Replace `isSecure` property with `secured` property in `PageState` objects.
+- **2023-01-06:** Replace `isSecure` property with `secured` property in `PageState` objects.
 
 ```cypher
 MATCH (n:PageState) SET n.secured=n.isSecure RETURN n
 MATCH (n:PageState) SET n.isSecure=NULL RETURN n
 ```
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
