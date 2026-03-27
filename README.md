@@ -18,7 +18,7 @@ Pub/Sub (AuditStart) ──> PageBuilder ──> Pub/Sub (PageCreated / PageAudi
 
 | Class | Purpose |
 |-------|---------|
-| `Application` | Spring Boot entry point. |
+| `Application` | Spring Boot entry point; sets the WebDriver HTTP factory system property. |
 | `AuditController` | Single `POST /` endpoint that decodes Pub/Sub push messages, orchestrates page building, and publishes results. |
 | `BodySchema` / `MessageSchema` / `AuditStartMessageSchema` | OpenAPI-annotated DTOs for the Pub/Sub push envelope. |
 
@@ -33,6 +33,20 @@ Pub/Sub (AuditStart) ──> PageBuilder ──> Pub/Sub (PageCreated / PageAudi
 7. Depending on the audit level:
    - **PAGE** -- the page is attached to the audit record and a `PageAuditMessage` is published.
    - **DOMAIN** -- a `DomainMap` is created/updated, a single-step `Journey` is saved, and both `PageCreated` and `JourneyVerified` messages are published.
+
+## Design by Contract
+
+This project follows **Design by Contract** (DbC) principles. Each public method documents its:
+
+- **Preconditions** -- what must be true before the method is called.
+- **Postconditions** -- what the method guarantees upon return.
+- **Class invariants** -- properties that hold true for every instance after construction and between method calls.
+
+Runtime assertions (`assert`) enforce key invariants during development and testing. Run the application with `-ea` to enable assertion checking:
+
+```bash
+java -ea -jar target/PageBuilder-*.jar
+```
 
 ## Prerequisites
 
@@ -122,6 +136,18 @@ Accepts a Pub/Sub push message envelope containing a Base64-encoded `AuditStartM
 
 Interactive API docs are available at `/swagger-ui.html` when the service is running (powered by SpringDoc OpenAPI).
 
+## Dependencies
+
+| Dependency | Purpose |
+|-----------|---------|
+| Spring Boot 2.6.13 | Web framework, REST endpoints, actuator |
+| Jackson 2.12.2 (`jackson-databind`, `jackson-datatype-jsr310`) | JSON serialization with Java Time support |
+| Lombok 1.18.34 | Boilerplate reduction via annotations |
+| SpringDoc OpenAPI 1.7.0 | Swagger UI and OpenAPI 3.0 documentation |
+| Swagger Annotations 2.2.31 | OpenAPI annotation support |
+| LookseeCore 0.3.16 | Shared models, services, and GCP utilities |
+| Resilience4j | Retry policies for WebDriver, Neo4j, and GCP calls |
+
 ## Testing
 
 ### Running Tests
@@ -167,13 +193,13 @@ target/site/jacoco/index.html
 
 ## Configuration
 
-Key configuration files:
-
 | File | Purpose |
 |------|---------|
-| `src/main/resources/application.properties` | Server ports, logging, Pub/Sub topics, Neo4j, GCS |
-| `src/main/resources/application.yml` | Resilience4j retry policies |
+| `src/main/resources/application.properties` | Server ports, logging, Neo4j log level |
+| `src/main/resources/application.yml` | Resilience4j retry policies (default, WebDriver, Neo4j, GCP) |
 | `src/main/resources/logback.xml` | Logging appenders (console + file) |
+
+Environment-specific settings (Pub/Sub topics, Neo4j credentials, GCS bucket, GCP credentials) are provided via environment variables or external configuration at deployment time.
 
 ## CI/CD
 

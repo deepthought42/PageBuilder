@@ -6,7 +6,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Schema definition for the decoded audit start payload.
+ * OpenAPI schema definition for the decoded audit start payload.
+ *
+ * <p>This class mirrors the structure of
+ * {@code com.looksee.models.message.AuditStartMessage} and is used
+ * exclusively for Swagger/OpenAPI documentation.</p>
+ *
+ * <h3>Contract</h3>
+ * <ul>
+ *   <li><b>Invariant:</b> A valid instance has all four fields
+ *       ({@code url}, {@code type}, {@code accountId}, {@code auditId})
+ *       set to non-null values.</li>
+ *   <li><b>Invariant:</b> {@code type} must be one of {@code "PAGE"} or
+ *       {@code "DOMAIN"}.</li>
+ *   <li><b>Invariant:</b> {@code url} must be a well-formed URI.</li>
+ * </ul>
  */
 @Data
 @NoArgsConstructor

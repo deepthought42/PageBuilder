@@ -34,6 +34,16 @@ Thank you for your interest in contributing! This document outlines the workflow
 6. **Commit** using the conventions below.
 7. **Push** and open a pull request against `master`.
 
+## Design by Contract
+
+This project follows **Design by Contract** (DbC) principles. When adding or modifying code:
+
+- Document **preconditions** (what callers must satisfy) in the Javadoc.
+- Document **postconditions** (what the method guarantees) in the Javadoc.
+- Document **class invariants** (properties that always hold) in the class-level Javadoc.
+- Add `assert` statements for key invariants that should be checked at runtime during development.
+- Run with `-ea` (enable assertions) during development and testing.
+
 ## Commit Message Format
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/). This enables automated versioning via [Semantic Release](https://github.com/semantic-release/semantic-release).
@@ -84,6 +94,7 @@ docs: update README with test instructions
 - Follow existing conventions in the codebase.
 - Use meaningful variable names.
 - Keep methods focused and short where possible.
+- Add Javadoc with precondition/postcondition/invariant documentation for all public methods and classes.
 
 ## Pull Requests
 

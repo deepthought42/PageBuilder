@@ -48,16 +48,6 @@ resilience4j.retry:
                 - java.nio.channels.ClosedChannelException
                 - java.lang.RuntimeException
                 - javax.imageio.IIOException
-        builder:
-            maxAttempts: 5
-            waitDuration: 2s
-            retryExceptions:
-                - org.openqa.selenium.WebDriverException
-                - org.openqa.selenium.remote.UnreachableBrowserException
-                - org.openqa.selenium.NoSuchSessionException
-                - java.io.IOException
-                - java.net.ConnectException
-                - java.net.SocketException
     instances:
         neoforj:
             baseConfig: neoforj
