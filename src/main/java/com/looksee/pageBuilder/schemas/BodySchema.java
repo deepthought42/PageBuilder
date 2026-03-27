@@ -6,7 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Schema definition for the top-level request body
+ * Top-level request body DTO for the Pub/Sub push envelope.
+ *
+ * <h3>Contract</h3>
+ * <ul>
+ *   <li><b>Invariant:</b> A valid instance has a non-null {@code message}
+ *       whose {@code data} field is a non-blank Base64-encoded string.</li>
+ * </ul>
  */
 @Data
 @NoArgsConstructor
@@ -17,10 +23,10 @@ import lombok.NoArgsConstructor;
     requiredProperties = {"message"}
 )
 public class BodySchema {
-    
+
     @Schema(
         description = "Message containing the audit request data",
         required = true
     )
     private MessageSchema message;
-} 
+}

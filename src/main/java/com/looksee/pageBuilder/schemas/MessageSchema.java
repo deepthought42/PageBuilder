@@ -6,7 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Schema definition for the message wrapper containing Base64 encoded data
+ * DTO representing the message wrapper inside the Pub/Sub push envelope.
+ *
+ * <h3>Contract</h3>
+ * <ul>
+ *   <li><b>Invariant:</b> A valid instance has a non-null, non-blank
+ *       {@code data} field containing a Base64-encoded JSON string.</li>
+ * </ul>
  */
 @Data
 @NoArgsConstructor
@@ -17,11 +23,11 @@ import lombok.NoArgsConstructor;
     requiredProperties = {"data"}
 )
 public class MessageSchema {
-    
+
     @Schema(
         description = "Base64 encoded JSON string containing AuditStartMessage",
         example = "eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tIiwidHlwZSI6IlBBR0UiLCJhY2NvdW50SWQiOiIxMjMiLCJhdWRpdElkIjoiNDU2In0=",
         required = true
     )
     private String data;
-} 
+}

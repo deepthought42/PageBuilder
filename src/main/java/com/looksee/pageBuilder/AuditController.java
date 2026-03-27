@@ -63,7 +63,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
- * API Controller with main endpoint for running the page builder script
+ * REST controller that receives Google Cloud Pub/Sub push messages, builds
+ * {@link PageState} objects from the target URL, and publishes downstream
+ * audit messages.
+ *
+ * <h3>Class Invariants</h3>
+ * <ul>
+ *   <li>All {@code @Autowired} service dependencies are non-null after
+ *       Spring context initialisation.</li>
+ *   <li>The controller is stateless between requests; all mutable state is
+ *       local to {@link #receiveMessage(BodySchema)}.</li>
+ * </ul>
  */
 @RestController
 @Tag(name = "Audit", description = "API endpoints for building page objects")
@@ -72,37 +82,72 @@ public class AuditController {
 
 	@Autowired
 	private AuditRecordService audit_record_service;
-	
+
 	@Autowired
 	private BrowserService browser_service;
-	
+
 	@Autowired
 	private JourneyService journey_service;
-	
+
 	@Autowired
 	private StepService step_service;
-	
+
 	@Autowired
 	private PageStateService page_state_service;
-	
+
 	@Autowired
 	private ElementStateService element_state_service;
-	
+
 	@Autowired
 	private DomainMapService domain_map_service;
-	
+
 	@Autowired
 	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
-	
+
 	@Autowired
 	private PubSubJourneyVerifiedPublisherImpl pubSubJourneyVerifiedPublisherImpl;
-	
+
 	@Autowired
 	private PubSubPageCreatedPublisherImpl pubSubPageCreatedPublisherImpl;
 
 	@Autowired
 	private PubSubPageAuditPublisherImpl audit_record_topic;
-	
+
+	/**
+	 * Receives a Pub/Sub push message, extracts page data from the enclosed
+	 * URL, and publishes the appropriate downstream messages.
+	 *
+	 * <h4>Preconditions</h4>
+	 * <ul>
+	 *   <li>{@code body} must not be {@code null}.</li>
+	 *   <li>{@code body.getMessage()} must not be {@code null}.</li>
+	 *   <li>{@code body.getMessage().getData()} must be a non-blank,
+	 *       Base64-encoded JSON string representing an
+	 *       {@link AuditStartMessage}.</li>
+	 *   <li>The decoded {@code url} field must be a valid, well-formed URL.</li>
+	 * </ul>
+	 *
+	 * <h4>Postconditions</h4>
+	 * <ul>
+	 *   <li>On success (HTTP 200): at least one Pub/Sub message has been
+	 *       published to the appropriate downstream topic
+	 *       ({@code PageCreated}, {@code JourneyVerified},
+	 *       {@code PageAudit}, or {@code AuditError}).</li>
+	 *   <li>On validation failure (HTTP 400): no side effects occur.</li>
+	 *   <li>On processing error (HTTP 500): an {@code AuditError} message
+	 *       is published if serialisation succeeds.</li>
+	 *   <li>The {@link Browser} resource, if acquired, is always closed
+	 *       in the {@code finally} block.</li>
+	 * </ul>
+	 *
+	 * @param body the Pub/Sub push envelope containing the audit message
+	 * @return {@code 200 OK} on success, {@code 400 Bad Request} for
+	 *         invalid payloads, or {@code 500 Internal Server Error} on
+	 *         processing failures
+	 * @throws ExecutionException   if an async operation fails
+	 * @throws InterruptedException if the thread is interrupted
+	 * @throws MalformedURLException if the decoded URL is malformed
+	 */
 	@Operation(
 		summary = "Extract page data from a given URL",
 		description = "Receives an audit message, processes the page, and publishes appropriate messages to Pub/Sub topics"
@@ -133,6 +178,7 @@ public class AuditController {
 	public ResponseEntity<String> receiveMessage(
 		@Valid @RequestBody BodySchema body
 	) throws ExecutionException, InterruptedException, MalformedURLException {
+		// Precondition: validate input envelope
 		if(body == null || body.getMessage() == null || body.getMessage().getData() == null || body.getMessage().getData().isBlank()) {
 			log.warn("Received empty message body while attempting to extract page data");
 			return new ResponseEntity<String>("Request must include message.data containing a Base64-encoded AuditStartMessage payload", HttpStatus.BAD_REQUEST);
@@ -149,9 +195,11 @@ public class AuditController {
 			log.warn("Received an invalid message payload", e);
 			return new ResponseEntity<String>("Request message.data must be valid Base64-encoded JSON for AuditStartMessage", HttpStatus.BAD_REQUEST);
 		}
-        
+
+		assert url_msg != null : "Postcondition of deserialization: url_msg must not be null";
+
 		URL url = new URL(BrowserUtils.sanitizeUserUrl(url_msg.getUrl()));
-		
+
 	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 	    PageState page_state = null;
 		Browser browser = null;
@@ -171,10 +219,10 @@ public class AuditController {
 
 				String error_json = mapper.writeValueAsString(page_extraction_err);
 				pubSubErrorPublisherImpl.publish(error_json);
-				
+
 				return new ResponseEntity<String>("Successfully sent message to page extraction error", HttpStatus.OK);
 			}
-			
+
 			DomainMap domain_map = null;
 			if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
 				domain_map = domain_map_service.findByDomainAuditId(url_msg.getAuditId());
@@ -183,18 +231,19 @@ public class AuditController {
 					log.warn("adding domain map to audit record = " + url_msg.getAuditId());
 					audit_record_service.addDomainMap(url_msg.getAuditId(), domain_map.getId());
 				}
+				assert domain_map != null : "Invariant: domain_map must be non-null for DOMAIN audits";
 			}
 
 			//update audit record with progress
 			browser = browser_service.getConnection(BrowserType.CHROME, BrowserEnvironment.DISCOVERY);
 			page_state = browser_service.buildPageState(url, browser, is_secure, http_status, url_msg.getAuditId());
-		
+
 			//CHECK IF PAGE STATE EXISTS IN DOMAIN AUDIT ALREADY. IF IT DOESN'T, OR IT DOES AND
 			// THERE AREN'T ANY ELEMENTS ASSOCIATED IN DB THEN BUILD PAGE ELEMENTS,
 			PageState page_state_record = audit_record_service.findPageWithKey(url_msg.getAuditId(),
 																				page_state.getKey());
-			
-			if(page_state_record == null 
+
+			if(page_state_record == null
 					|| element_state_service.getAllExistingKeys(page_state_record.getId()).isEmpty())
 			{
 				log.warn("Extracting element states...");
@@ -210,15 +259,17 @@ public class AuditController {
 				page_state = page_state_record;
 			}
 
+			assert page_state != null : "Invariant: page_state must be non-null after build/retrieve";
+
 			List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
 			page_state.setElements(elements);
-			
+
 		    if(AuditLevel.DOMAIN.equals(url_msg.getType())) {
 				domain_map_service.addPageToDomainMap(domain_map.getId(), page_state.getId());
 				PageBuiltMessage page_built_msg = new PageBuiltMessage(url_msg.getAccountId(),
 																		page_state.getId(),
 																		url_msg.getAuditId());
-	
+
 				String page_built_str = mapper.writeValueAsString(page_built_msg);
 				log.warn("sending page built message to PageCreated topic : "+page_built_str);
 				pubSubPageCreatedPublisherImpl.publish(page_built_str);
@@ -230,12 +281,12 @@ public class AuditController {
 				journey.setCandidateKey(journey.generateKey());
 				Journey saved_journey = journey_service.save(journey);
 				journey.setId(saved_journey.getId());
-				
+
 				domain_map_service.addJourneyToDomainMap(journey.getId(), domain_map.getId());
-				
-				VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey, 
-																				BrowserType.CHROME, 
-																				url_msg.getAccountId(), 
+
+				VerifiedJourneyMessage journey_msg = new VerifiedJourneyMessage(journey,
+																				BrowserType.CHROME,
+																				url_msg.getAccountId(),
 																				url_msg.getAuditId());
 				log.warn("journey steps = "+ journey.getSteps());
 				String journey_msg_str = mapper.writeValueAsString(journey_msg);
@@ -253,24 +304,24 @@ public class AuditController {
 				log.warn("(PageAudit) Sending PageAuditMessage to Pub/Sub = "+audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 			}
-			
+
 			return new ResponseEntity<String>("Successfully sent message to verified journey topic", HttpStatus.OK);
 		}
 		catch(Exception e) {
-			PageDataExtractionError page_extracton_err = new PageDataExtractionError(url_msg.getAccountId(),
+			PageDataExtractionError page_extraction_err = new PageDataExtractionError(url_msg.getAccountId(),
 																						url_msg.getAuditId(),
 																						url_msg.getUrl().toString(),
 																						"An exception occurred while building page state "+url_msg.getUrl()+".\n"+e.getMessage());
 
 			try {
-				String element_extraction_str = mapper.writeValueAsString(page_extracton_err);
+				String element_extraction_str = mapper.writeValueAsString(page_extraction_err);
 				pubSubErrorPublisherImpl.publish(element_extraction_str);
 			}
 			catch(JsonProcessingException serializationException) {
 				log.error("Failed to serialize PageDataExtractionError for publication", serializationException);
 			}
 			log.error("An exception occurred that bubbled up to the page state builder", e);
-			
+
 			return new ResponseEntity<String>("Error building page state for url "+url_msg.getUrl(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		finally {
@@ -279,5 +330,5 @@ public class AuditController {
 			}
 		}
 	}
-	
+
 }
